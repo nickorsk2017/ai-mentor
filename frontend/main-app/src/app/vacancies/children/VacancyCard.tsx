@@ -9,6 +9,7 @@ type VacancyCardProps = {
   vacancy: Vacancy;
   isActive: boolean;
   onActivate: () => void;
+  onDeactivate: () => void;
   onDelete: () => void;
   onOpenStageCountModal: () => void;
   onUpdateVacancy: (patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
@@ -20,6 +21,7 @@ export function VacancyCard({
   vacancy,
   isActive,
   onActivate,
+  onDeactivate,
   onDelete,
   onOpenStageCountModal,
   onUpdateVacancy,
@@ -117,6 +119,68 @@ export function VacancyCard({
     )
   }, [vacancy.stages, isActive]);
 
+  const buttonsJSX = useMemo(() => {
+    return (<div className="absolute right-4 top-[4px] z-40 flex items-center gap-2">
+      <Button
+        type="button"
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDelete();
+        }}
+        appearance="danger"
+      >
+        Delete
+      </Button>
+
+      <Button
+        size="small"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (isActive) onDeactivate();
+          else onActivate();
+        }}
+      >
+        
+        {isActive ? (
+          // Up chevron
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 15L12 9L18 15"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        ) : (
+          // Down chevron
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M6 9L12 15L18 9"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </Button>
+  </div>)
+  }, [isActive]);
+
   return (
     <article
       className={`relative flex flex-col gap-3 rounded-2xl border p-4 shadow-sm cursor-pointer bg-white ${isActive ? "border-violet-500" : "border-zinc-200"}`}
@@ -128,9 +192,9 @@ export function VacancyCard({
         <div className="flex w-full flex-col gap-1 text-lg">
          
           <div></div>
-          {isActive ? (
-            <>
             <div className="sticky top-0 z-40 bg-white/90 backdrop-blur flex flex-col gap-2">
+              {isActive && (
+                <>
                 <input
                     ref={titleRef}
                     className="w-full max-w-[600px] border-none bg-transparent text-[20px] font-semibold outline-none focus:ring-0"
@@ -142,11 +206,23 @@ export function VacancyCard({
                   className="w-full max-w-[400px] border-none bg-transparent text-[20px] text-zinc-600 outline-none focus:ring-0"
                   value={vacancy.company ?? ""}
                   onChange={(e) => onUpdateVacancy({ company: e.target.value })}
-                  placeholder="Company"
-                />
+                  placeholder="Company"/>
+                </>)}
+
+               {!isActive && (
+                <>
+                  <div className="text-[20px] font-semibold text-zinc-900">
+                    {vacancy.title || "Untitled vacancy"}
+                  </div>
+                  {vacancy.company && (
+                    <div className="text-[20px] text-zinc-600">{vacancy.company}</div>
+                  )}
+               </>)}
+
+               {buttonsJSX}
             </div>
               
-               <CvRichEditor
+            {isActive && <CvRichEditor
                   size="small"
                   className="max-h-auto mt-2 w-full"
                   valueHtml={vacancy.description}
@@ -156,31 +232,11 @@ export function VacancyCard({
                     })
                   }
                   autoFocus={Boolean(vacancy.title.trim())}
-                />
-            </>
-          ) : (
-            <>
-              <div className="text-[20px] font-semibold text-zinc-900">
-                {vacancy.title || "Untitled vacancy"}
-              </div>
-              {vacancy.company && (
-                <div className="text-[20px] text-zinc-600">{vacancy.company}</div>
-              )}
-            </>
-          )}
+            />}
         </div>
-        <Button
-          type="button"
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete();
-          }}
-          appearance="danger"
-          className="absolute right-4 top-0 z-40"
-        >
-          Delete
-        </Button>
+
+
+        
       </header>
 
       <div className="flex flex-col gap-2">

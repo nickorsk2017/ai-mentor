@@ -25,9 +25,9 @@ const appearanceClasses: Record<Appearance, string> = {
 };
 
 const sizeClasses: Record<Size, string> = {
-  small: "px-2.5 py-1 text-[14px]",
-  medium: "px-3 py-1.5 text-[16px]",
-  large: "px-4 py-2 text-[20px]",
+  small: "px-2.5 py-1 text-[14px] h-8",
+  medium: "px-3 py-1.5 text-[16px] h-10",
+  large: "px-4 py-2 text-[20px] h-12",
 };
 
 export function Button({

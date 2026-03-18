@@ -20,19 +20,14 @@ export default function MyCvPage() {
   };
 
   return (
-    <section className="flex w-full flex-col gap-6">
-      <header className="sticky top-0 z-10 flex flex-col gap-2 border-b border-white/70 bg-white/80 pb-3 backdrop-blur">
-        <h1 className="text-xl font-semibold text-zinc-950">My CV</h1>
-        <p className="max-w-2xl text-lg text-violet-500">
-          Maintain a structured version of your CV here. Use the rich editor to
-          tweak content for different roles and keep a file copy attached if
-          you like.
-        </p>
+    <section className="flex w-full flex-col gap-4">
+      <header className="sticky top-0 z-50 flex flex-col border-b border-white/70 bg-white">
+        <h1 className="text-[30px] font-semibold text-zinc-950">My CV</h1>
       </header>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col">
 
-          <CvRichEditor valueHtml={draftHtml} onChangeHtml={setDraftHtml} classToolbar="top-26" />
+          <CvRichEditor valueHtml={draftHtml} onChangeHtml={setDraftHtml} classToolbar="!top-11" />
           <p className="text-[11px] text-zinc-500">
             Tip: Include key skills, technologies, and achievements. The ranking
             engine uses this text to compare with vacancies.

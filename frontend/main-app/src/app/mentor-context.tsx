@@ -51,16 +51,17 @@ const MentorContext = createContext<MentorContextValue | undefined>(undefined);
 const STORAGE_KEY = "ai-hr-mentor-state-v1";
 
 export function MentorProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<MentorState>(() => {
-    if (typeof window === "undefined") return { cv: null, vacancies: [] };
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) return { cv: null, vacancies: [] };
-      return JSON.parse(raw) as MentorState;
-    } catch {
-      return { cv: null, vacancies: [] };
-    }
-  });
+  const [state, setState] = useState<MentorState>({ cv: null, vacancies: [] });
+
+  useEffect(() => {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+
+    console.log(raw);
+    console.log(JSON.parse(raw) as MentorState);
+    
+    setState(JSON.parse(raw) as MentorState);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -150,9 +151,7 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
 
 export function useMentor() {
   const ctx = useContext(MentorContext);
-  if (!ctx) {
-    throw new Error("useMentor must be used within MentorProvider");
-  }
+
   return ctx;
 }
 

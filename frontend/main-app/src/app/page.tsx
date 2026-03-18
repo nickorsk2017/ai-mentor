@@ -42,7 +42,7 @@ export default function Home() {
         </Link>
 
         <Link
-          href="/ranking"
+          href="/matching"
           className="group rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-md"
         >
           <h2 className="mb-1 text-sm font-semibold text-zinc-900">
