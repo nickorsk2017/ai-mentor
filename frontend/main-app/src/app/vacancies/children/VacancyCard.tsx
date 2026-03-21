@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { Vacancy, VacancyStage } from "../../mentor-context";
 import { Button } from "@/shared/ui/Button";
 import { CvRichEditor } from "@/shared/ui/CvRichEditor";
@@ -8,9 +8,11 @@ import { CvRichEditor } from "@/shared/ui/CvRichEditor";
 type VacancyCardProps = {
   vacancy: Vacancy;
   isActive: boolean;
+  isSaving?: boolean;
   onActivate: () => void;
   onDeactivate: () => void;
   onDelete: () => void;
+  onSave: () => void | Promise<void>;
   onOpenStageCountModal: () => void;
   onUpdateVacancy: (patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
   onUpdateStage: (stageId: string, patch: Partial<VacancyStage>) => void;
@@ -20,9 +22,11 @@ type VacancyCardProps = {
 export function VacancyCard({
   vacancy,
   isActive,
+  isSaving = false,
   onActivate,
   onDeactivate,
   onDelete,
+  onSave,
   onOpenStageCountModal,
   onUpdateVacancy,
   onUpdateStage,
@@ -41,13 +45,13 @@ export function VacancyCard({
   const stagesJSX = useMemo(() => {
     if(!isActive) return null;
 
-    return  vacancy.stages.length === 0 ? (
+    return  vacancy.stages?.length === 0 ? (
       <p className="text-lg text-zinc-500">
         No stages yet. Add the first one to track your progress.
       </p>
     ) : (
       <div className="flex flex-col gap-2">
-        {vacancy.stages.map((stage, index) => (
+        {vacancy.stages?.map((stage, index) => (
           <div
             key={stage.id}
             className="flex flex-col gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-3"
@@ -120,28 +124,43 @@ export function VacancyCard({
   }, [vacancy.stages, isActive]);
 
   const buttonsJSX = useMemo(() => {
-    return (<div className="absolute right-4 top-[4px] z-40 flex items-center gap-2">
-      <Button
-        type="button"
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDelete();
-        }}
-        appearance="danger"
-      >
-        Delete
-      </Button>
+    return (
+      <div className="absolute right-4 top-[4px] z-40 flex items-center gap-2">
+        {isActive && (
+          <Button
+            type="button"
+            size="small"
+            appearance="violet"
+            disabled={isSaving}
+            onClick={(e) => {
+              e.stopPropagation();
+              void onSave();
+            }}
+          >
+            {isSaving ? "Saving…" : "Save"}
+          </Button>
+        )}
+        <Button
+          type="button"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete();
+          }}
+          appearance="danger"
+        >
+          Delete
+        </Button>
 
-      <Button
-        size="small"
-        onClick={(e) => {
-          e.stopPropagation();
-          if (isActive) onDeactivate();
-          else onActivate();
-        }}
-      >
-        
+        <Button
+          type="button"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (isActive) onDeactivate();
+            else onActivate();
+          }}
+        >
         {isActive ? (
           // Up chevron
           <svg
@@ -178,8 +197,9 @@ export function VacancyCard({
           </svg>
         )}
       </Button>
-  </div>)
-  }, [isActive]);
+      </div>
+    );
+  }, [isActive, isSaving, onActivate, onDeactivate, onDelete, onSave]);
 
   return (
     <article
@@ -242,9 +262,9 @@ export function VacancyCard({
       <div className="flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span></span>
-          {typeof vacancy.plannedStageCount === "number" && (
+          {vacancy.planned_stages > 0 && (
             <span className="text-lg text-zinc-500">
-              Planned: {vacancy.plannedStageCount} stages
+              Planned: {vacancy.planned_stages} stages
             </span>
           )}
           {isActive && <Button

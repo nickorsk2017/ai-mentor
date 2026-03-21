@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from uuid import UUID
 
 from ..services.cv_service import (
@@ -7,8 +7,13 @@ from ..services.cv_service import (
     health_check,
 )
 from ..schemas.cv import UpsertCVRequest, CVResponse
-from ..services.vacancy_service import create_vacancy, get_vacancies
-from ..schemas.vacancy import CreateVacancyRequest, VacancyResponse, GetVacanciesRequest, VacanciesResponse
+from ..services.vacancy_service import upsert_vacancy, get_vacancies, update_vacancy
+from ..schemas.vacancy import (
+    CreateVacancyRequest,
+    UpdateVacancyRequest,
+    VacancyResponse,
+    VacanciesResponse,
+)
 
 router = APIRouter()
 
@@ -29,10 +34,20 @@ async def get_cv_endpoint(cv_id: UUID) -> CVResponse:
 
 
 @router.post("/vacancies", response_model=VacancyResponse)
-async def create_vacancy_endpoint(req: CreateVacancyRequest) -> VacancyResponse:
-    return await create_vacancy(req)
+async def upsert_vacancy_endpoint(req: CreateVacancyRequest) -> VacancyResponse:
+    return await upsert_vacancy(req)
+
+
+@router.put("/vacancies/{vacancy_id}", response_model=VacancyResponse)
+async def update_vacancy_endpoint(
+    vacancy_id: UUID, req: UpdateVacancyRequest
+) -> VacancyResponse:
+    updated = await update_vacancy(vacancy_id, req)
+    if updated is None:
+        raise HTTPException(status_code=404, detail="Vacancy not found")
+    return updated
 
 
 @router.get("/vacancies", response_model=VacanciesResponse)
-async def get_vacancy_endpoint(req: GetVacanciesRequest) -> VacancyResponse:
-    return await get_vacancies(req)
+async def get_vacancy_endpoint(user_id: UUID) -> VacanciesResponse:
+    return await get_vacancies(user_id)

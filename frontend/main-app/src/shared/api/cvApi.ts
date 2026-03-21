@@ -25,7 +25,7 @@ export type CvBackendRecord = {
 
 export async function saveCvToBackend(cvText: string): Promise<CvBackendRecord> {
   const userId = getOrCreateUserId();
-  const res = await fetch(`${API_BASE}/v1/cvs`, {
+  const res = await fetch(`${API_BASE}/cvs`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id: userId, cv_text: cvText }),
@@ -47,7 +47,7 @@ export async function getLastSavedCvFromBackend(): Promise<CvBackendRecord | nul
   const cvId = window.localStorage.getItem(CV_ID_KEY);
   if (!cvId) return null;
 
-  const res = await fetch(`${API_BASE}/v1/cvs/${cvId}`);
+  const res = await fetch(`${API_BASE}/cvs/${cvId}`);
   if (res.status === 404) return null;
   if (!res.ok) {
     throw new Error(`Load CV failed (${res.status})`);

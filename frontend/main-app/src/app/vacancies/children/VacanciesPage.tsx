@@ -1,11 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMentor, VacancyStage } from "../../mentor-context";
 import { Modal } from "../../../shared/ui/Modal";
 import { Button } from "@/shared/ui/Button";
 import { VacancyCard } from "./VacancyCard";
-import { createVacancyOnBackend } from "@/shared/api/vacancyApi";
+import {
+  createVacancyOnBackend,
+  updateVacancyOnBackend,
+} from "@/shared/api/vacancyApi";
 
 export function VacanciesPage() {
   const {
@@ -15,12 +18,18 @@ export function VacanciesPage() {
     updateVacancy,
     updateVacancyStages,
     setVacancyPlannedStageCount,
+    fetchVacancies,
   } = useMentor();
 
   const [stageCountModalVacancyId, setStageCountModalVacancyId] =
     useState<string | null>(null);
   const [stageCountInput, setStageCountInput] = useState<string>("");
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
+  const [savingVacancyId, setSavingVacancyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchVacancies();
+  }, [fetchVacancies]);
 
   const handleAddVacancy = async () => {
     const draft = {
@@ -29,13 +38,8 @@ export function VacanciesPage() {
       description: "",
     };
 
-    try {
-      const saved = await createVacancyOnBackend(draft);
-      addVacancy(draft, { id: saved.id });
-    } catch {
-      // Keep local UX responsive even when backend is unavailable.
-      addVacancy(draft);
-    }
+    const saved = await createVacancyOnBackend(draft);
+    addVacancy(saved);
   };
 
   const addStage = (vacancyId: string) => {
@@ -47,7 +51,7 @@ export function VacanciesPage() {
     };
     const vacancy = vacancies.find((v) => v.id === vacancyId);
     if (!vacancy) return;
-    updateVacancyStages(vacancyId, [...vacancy.stages, newStage]);
+    updateVacancyStages(vacancyId, [...vacancy.stages??[], newStage]);
   };
 
   const updateStage = (
@@ -57,18 +61,19 @@ export function VacanciesPage() {
   ) => {
     const vacancy = vacancies.find((v) => v.id === vacancyId);
     if (!vacancy) return;
-    const stages = vacancy.stages.map((s) =>
+    const stages = vacancy.stages?.map((s) =>
       s.id === stageId ? { ...s, ...patch } : s
-    );
+    ) ?? [];
     updateVacancyStages(vacancyId, stages);
   };
 
   const removeStage = (vacancyId: string, stageId: string) => {
     const vacancy = vacancies.find((v) => v.id === vacancyId);
     if (!vacancy) return;
+
     updateVacancyStages(
       vacancyId,
-      vacancy.stages.filter((s) => s.id !== stageId)
+      vacancy.stages?.filter((s) => s.id !== stageId) ?? []
     );
   };
 
@@ -88,6 +93,34 @@ export function VacanciesPage() {
     setStageCountInput("");
   };
 
+  const handleSaveVacancy = async (vacancyId: string) => {
+    const v = vacancies.find((x) => x.id === vacancyId);
+    if (!v) return;
+    setSavingVacancyId(vacancyId);
+    try {
+      const mapped = await updateVacancyOnBackend(vacancyId, {
+        title: v.title,
+        company: v.company,
+        description: v.description,
+        planned_stages: v.planned_stages,
+        stages: v.stages ?? [],
+      });
+      updateVacancy(mapped.id, {
+        title: mapped.title,
+        company: mapped.company,
+        description: mapped.description,
+        planned_stages: mapped.planned_stages,
+        created_at: mapped.created_at,
+      });
+      updateVacancyStages(mapped.id, mapped.stages ?? []);
+    } catch (e) {
+      console.error(e);
+      window.alert("Could not save vacancy. Check the API is running.");
+    } finally {
+      setSavingVacancyId(null);
+    }
+  };
+
   return (
       <section className="flex w-full flex-col gap-4">
         <header className="flex flex-col">
@@ -105,9 +138,11 @@ export function VacanciesPage() {
                 key={vacancy.id}
                 vacancy={vacancy}
                 isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
+                isSaving={savingVacancyId === vacancy.id}
                 onActivate={() => setActiveVacancyId(vacancy.id)}
                 onDeactivate={() => setActiveVacancyId(null)}
                 onDelete={() => deleteVacancy(vacancy.id)}
+                onSave={() => handleSaveVacancy(vacancy.id)}
                 onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
                 onUpdateVacancy={(patch) => updateVacancy(vacancy.id, patch)}
                 onUpdateStage={(stageId, patch) =>
@@ -173,4 +208,3 @@ export function VacanciesPage() {
       </section>
   );
 }
-

@@ -12,20 +12,32 @@ FastAPI service for storing CVs and running placeholder analysis.
 
 ```bash
 cp .env.example .env
-export $(grep -v '^#' .env | xargs)
+# Set DATABASE_URL (e.g. postgresql+asyncpg://user:pass@localhost:5432/ai_hr)
 
-uvicorn main:app --reload --host 0.0.0.0 --port ${PORT:-8000}
+uv sync   # or: pip install .
+alembic upgrade head
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
+## Database migrations (Alembic)
+
+Uses the same `DATABASE_URL` as the app; Alembic swaps `+asyncpg` → `+psycopg2` for sync migrations.
+
 ```bash
-pip install .
-uvicorn main:app --reload --host 0.0.0.0 --port ${PORT:-8000}
+cd backend/cv-microservice
+alembic upgrade head
+```
+
+Create a new revision after model changes:
+
+```bash
+alembic revision --autogenerate -m "describe change"
+alembic upgrade head
 ```
 
 ## Notes
 
-- Database tables are created automatically on startup (dev convenience).
-- For production, replace the bootstrap with Alembic migrations.
+- Schema is managed with Alembic; startup only checks that PostgreSQL is reachable.
 
 ## Create CV request body
 

@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useState,
 } from "react";
+import { getVacanciesOnBackend } from "../shared/api/vacancyApi";
 
 type StageStatus = "pending" | "done" | "failed";
 
@@ -23,8 +24,9 @@ export type Vacancy = {
   title: string;
   company?: string;
   description: string;
-  stages: VacancyStage[];
-  plannedStageCount?: number;
+  stages?: VacancyStage[];
+  planned_stages: number;
+  created_at?: string;
 };
 
 export type CV = {
@@ -39,14 +41,13 @@ type MentorState = {
 
 type MentorContextValue = MentorState & {
   setCv: (cv: CV) => void;
-  addVacancy: (
-    vacancy: Omit<Vacancy, "id" | "stages">,
-    options?: { id?: string }
-  ) => void;
+  /** Append a vacancy (e.g. from POST /vacancies). `stages` default to []. */
+  addVacancy: (vacancy: Omit<Vacancy, "stages"> & { stages?: VacancyStage[] }) => void;
   deleteVacancy: (id: string) => void;
   updateVacancy: (id: string, patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
   updateVacancyStages: (id: string, stages: VacancyStage[]) => void;
   setVacancyPlannedStageCount: (id: string, count: number) => void;
+  fetchVacancies: () => Promise<void>;
 };
 
 const MentorContext = createContext<MentorContextValue | undefined>(undefined);
@@ -60,12 +61,10 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addVacancy = useCallback(
-    (vacancy: Omit<Vacancy, "id" | "stages">, options?: { id?: string }) => {
-      const id = options?.id ?? crypto.randomUUID();
+    (vacancy: Omit<Vacancy, "stages"> & { stages?: VacancyStage[] }) => {
       const newVacancy: Vacancy = {
-        id,
-        stages: [],
         ...vacancy,
+        stages: vacancy.stages ?? [],
       };
       setState((prev) => ({
         ...prev,
@@ -74,6 +73,11 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
     },
     []
   );
+
+  const fetchVacancies = useCallback(async () => {
+    const vacancies = await getVacanciesOnBackend();
+    setState((prev) => ({ ...prev, vacancies}));
+  }, []);
 
   const deleteVacancy = useCallback((id: string) => {
     setState((prev) => ({
@@ -111,7 +115,7 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
       setState((prev) => ({
         ...prev,
         vacancies: prev.vacancies.map((v) =>
-          v.id === id ? { ...v, plannedStageCount: count } : v
+          v.id === id ? { ...v, planned_stages: count } : v
         ),
       }));
     },
@@ -127,8 +131,9 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
       updateVacancy,
       updateVacancyStages,
       setVacancyPlannedStageCount,
+      fetchVacancies,
     }),
-    [state, setCv, addVacancy, deleteVacancy, updateVacancy, updateVacancyStages, setVacancyPlannedStageCount]
+    [state, setCv, addVacancy, deleteVacancy, updateVacancy, updateVacancyStages, setVacancyPlannedStageCount, fetchVacancies]
   );
 
   return (

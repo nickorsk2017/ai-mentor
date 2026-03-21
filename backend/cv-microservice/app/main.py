@@ -2,18 +2,18 @@ from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import text
 
 from .api.routes import router as cv_router
-from .db.base import Base
 from .db.session import engine
 from .config import settings
 
 
 async def init_db() -> None:
-    # Simple dev-time bootstrap. For production, use Alembic migrations.
+    """Verify PostgreSQL is reachable. Apply schema with `alembic upgrade head`."""
     try:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
     except Exception as e:
         msg = str(e)
         if "InvalidCatalogNameError" in msg or "does not exist" in msg:
