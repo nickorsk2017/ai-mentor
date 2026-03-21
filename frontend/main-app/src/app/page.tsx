@@ -5,7 +5,7 @@ export default function Home() {
     <section className="flex w-full flex-col gap-10">
       <div className="mt-4 flex flex-col gap-4">
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-950">
-          AI HR Mentor for your career growth
+        AI Carrier Mentor for your career growth
         </h1>
         <p className="max-w-2xl text-sm text-zinc-600">
           Upload your CV, track vacancies and interview stages, and let an AI

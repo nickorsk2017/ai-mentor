@@ -5,6 +5,7 @@ import { useMentor, VacancyStage } from "../../mentor-context";
 import { Modal } from "../../../shared/ui/Modal";
 import { Button } from "@/shared/ui/Button";
 import { VacancyCard } from "./VacancyCard";
+import { createVacancyOnBackend } from "@/shared/api/vacancyApi";
 
 export function VacanciesPage() {
   const {
@@ -21,12 +22,20 @@ export function VacanciesPage() {
   const [stageCountInput, setStageCountInput] = useState<string>("");
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
 
-  const handleAddVacancy = () => {
-    addVacancy({
+  const handleAddVacancy = async () => {
+    const draft = {
       title: "New vacancy",
       company: "",
       description: "",
-    });
+    };
+
+    try {
+      const saved = await createVacancyOnBackend(draft);
+      addVacancy(draft, { id: saved.id });
+    } catch {
+      // Keep local UX responsive even when backend is unavailable.
+      addVacancy(draft);
+    }
   };
 
   const addStage = (vacancyId: string) => {

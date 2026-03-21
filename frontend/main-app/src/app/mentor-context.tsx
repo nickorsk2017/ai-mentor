@@ -39,7 +39,10 @@ type MentorState = {
 
 type MentorContextValue = MentorState & {
   setCv: (cv: CV) => void;
-  addVacancy: (vacancy: Omit<Vacancy, "id" | "stages">) => void;
+  addVacancy: (
+    vacancy: Omit<Vacancy, "id" | "stages">,
+    options?: { id?: string }
+  ) => void;
   deleteVacancy: (id: string) => void;
   updateVacancy: (id: string, patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
   updateVacancyStages: (id: string, stages: VacancyStage[]) => void;
@@ -48,33 +51,17 @@ type MentorContextValue = MentorState & {
 
 const MentorContext = createContext<MentorContextValue | undefined>(undefined);
 
-const STORAGE_KEY = "ai-hr-mentor-state-v1";
 
 export function MentorProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<MentorState>({ cv: null, vacancies: [] });
-
-  useEffect(() => {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-
-    console.log(raw);
-    console.log(JSON.parse(raw) as MentorState);
-    
-    setState(JSON.parse(raw) as MentorState);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
 
   const setCv = useCallback((cv: CV) => {
     setState((prev) => ({ ...prev, cv }));
   }, []);
 
   const addVacancy = useCallback(
-    (vacancy: Omit<Vacancy, "id" | "stages">) => {
-      const id = crypto.randomUUID();
+    (vacancy: Omit<Vacancy, "id" | "stages">, options?: { id?: string }) => {
+      const id = options?.id ?? crypto.randomUUID();
       const newVacancy: Vacancy = {
         id,
         stages: [],
@@ -151,7 +138,9 @@ export function MentorProvider({ children }: { children: React.ReactNode }) {
 
 export function useMentor() {
   const ctx = useContext(MentorContext);
-
+  if (!ctx) {
+    throw new Error("useMentor must be used within MentorProvider");
+  }
   return ctx;
 }
 

@@ -82,17 +82,9 @@ export default function RootLayout({
             </aside>
 
             {/* Main content area */}
-            <div className="flex min-h-full flex-1 flex-col">
-
-              <main className="flex-1 px-6 py-4">
+            <main className="flex-1 px-6 py-4">
                 <div className="mx-auto max-w-6xl relative">{children}</div>
-              </main>
-
-              <footer className="mt-4 flex items-center justify-between text-[11px] text-zinc-400">
-                <span>AI HR Mentor · Personal career cockpit</span>
-                <span>Built with Next.js &amp; React</span>
-              </footer>
-            </div>
+            </main>
           </div>
         </Providers>
       </body>
