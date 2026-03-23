@@ -13,6 +13,7 @@ type CvRichEditorProps = {
   className?: string;
   size?: Size;
   classToolbar?: string;
+  onMouseUp?: (e: React.MouseEvent<HTMLDivElement>) => void;
 };
 
 export function CvRichEditor({
@@ -22,6 +23,7 @@ export function CvRichEditor({
   className,
   size = "medium",
   classToolbar,
+  onMouseUp,
 }: CvRichEditorProps) {
   const editor = useEditor({
     extensions: [StarterKit],
@@ -59,6 +61,7 @@ export function CvRichEditor({
 
   return (
     <div
+      onClick={onMouseUp}
       className={`cursor-text  height-auto border border-zinc-200 bg-white border-t-0 ${
         className ?? ""
       }`}

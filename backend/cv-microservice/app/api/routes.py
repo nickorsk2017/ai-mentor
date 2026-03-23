@@ -7,10 +7,16 @@ from ..services.cv_service import (
     health_check,
 )
 from ..schemas.cv import UpsertCVRequest, CVResponse
-from ..services.vacancy_service import upsert_vacancy, get_vacancies, update_vacancy
+from ..services.vacancy_service import (
+    upsert_vacancy,
+    get_vacancies,
+    update_vacancy,
+    delete_vacancy,
+)
 from ..schemas.vacancy import (
     CreateVacancyRequest,
     UpdateVacancyRequest,
+    DeleteVacancyResponse,
     VacancyResponse,
     VacanciesResponse,
 )
@@ -51,3 +57,11 @@ async def update_vacancy_endpoint(
 @router.get("/vacancies", response_model=VacanciesResponse)
 async def get_vacancy_endpoint(user_id: UUID) -> VacanciesResponse:
     return await get_vacancies(user_id)
+
+
+@router.delete("/vacancies/{vacancy_id}", response_model=DeleteVacancyResponse)
+async def delete_vacancy_endpoint(vacancy_id: UUID, user_id: UUID) -> DeleteVacancyResponse:
+    deleted = await delete_vacancy(vacancy_id, user_id)
+    if deleted is None:
+        raise HTTPException(status_code=404, detail="Vacancy not found")
+    return deleted

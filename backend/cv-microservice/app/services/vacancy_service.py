@@ -10,6 +10,7 @@ from ..models.vacancy import Vacancy as VacancyModel
 from ..schemas.vacancy import (
     CreateVacancyRequest,
     UpdateVacancyRequest,
+    DeleteVacancyResponse,
     VacancyResponse,
     VacanciesResponse,
     VacancyStagePayload,
@@ -92,3 +93,19 @@ async def get_vacancies(user_id: UUID) -> VacanciesResponse:
         return VacanciesResponse(
             vacancies=[_to_response(vacancy) for vacancy in vacancies]
         )
+
+
+async def delete_vacancy(vacancy_id: UUID, user_id: UUID) -> DeleteVacancyResponse | None:
+    async with SessionLocal() as db:
+        result = await db.execute(
+            select(VacancyModel).where(VacancyModel.id == vacancy_id)
+        )
+        vacancy = result.scalar_one_or_none()
+        if vacancy is None:
+            return None
+        if vacancy.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
+        await db.delete(vacancy)
+        await db.commit()
+        return DeleteVacancyResponse(id=vacancy_id, deleted=True)

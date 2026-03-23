@@ -48,3 +48,8 @@ class GetVacanciesRequest(BaseModel):
 
 class VacanciesResponse(BaseModel):
     vacancies: list[VacancyResponse]
+
+
+class DeleteVacancyResponse(BaseModel):
+    id: UUID
+    deleted: bool = True

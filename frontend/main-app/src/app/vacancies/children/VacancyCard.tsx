@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { cx } from "@/libs/utils";
 import type { Vacancy, VacancyStage } from "../../mentor-context";
 import { Button } from "@/shared/ui/Button";
 import { CvRichEditor } from "@/shared/ui/CvRichEditor";
@@ -9,13 +10,11 @@ type VacancyCardProps = {
   vacancy: Vacancy;
   isActive: boolean;
   isSaving?: boolean;
-  onActivate: () => void;
-  onDeactivate: () => void;
+  onToggle: (isActive?: boolean) => void;
   onDelete: () => void;
-  onSave: () => void | Promise<void>;
   onOpenStageCountModal: () => void;
   onUpdateVacancy: (patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
-  onUpdateStage: (stageId: string, patch: Partial<VacancyStage>) => void;
+  onUpdateStages: (stages: VacancyStage[]) => void;
   onRemoveStage: (stageId: string) => void;
 };
 
@@ -23,13 +22,11 @@ export function VacancyCard({
   vacancy,
   isActive,
   isSaving = false,
-  onActivate,
-  onDeactivate,
+  onToggle,
   onDelete,
-  onSave,
   onOpenStageCountModal,
   onUpdateVacancy,
-  onUpdateStage,
+  onUpdateStages,
   onRemoveStage,
 }: VacancyCardProps) {
   const titleRef = useRef<HTMLInputElement | null>(null);
@@ -41,9 +38,12 @@ export function VacancyCard({
     }
   }, [isActive, vacancy.title]);
 
-
   const stagesJSX = useMemo(() => {
     if(!isActive) return null;
+
+    const onUpdateStage = (stageId: string, patch: Partial<VacancyStage>) => {
+      onUpdateStages(vacancy.stages?.map((s) => s.id === stageId ? { ...s, ...patch } : s) ?? []);
+    };
 
     return  vacancy.stages?.length === 0 ? (
       <p className="text-lg text-zinc-500">
@@ -125,21 +125,7 @@ export function VacancyCard({
 
   const buttonsJSX = useMemo(() => {
     return (
-      <div className="absolute right-4 top-[4px] z-40 flex items-center gap-2">
-        {isActive && (
-          <Button
-            type="button"
-            size="small"
-            appearance="violet"
-            disabled={isSaving}
-            onClick={(e) => {
-              e.stopPropagation();
-              void onSave();
-            }}
-          >
-            {isSaving ? "Saving…" : "Save"}
-          </Button>
-        )}
+      <div onMouseUp={(e) => e.stopPropagation()} className="absolute right-4 top-[40px] z-40 flex items-center gap-2">
         <Button
           type="button"
           size="small"
@@ -157,8 +143,7 @@ export function VacancyCard({
           size="small"
           onClick={(e) => {
             e.stopPropagation();
-            if (isActive) onDeactivate();
-            else onActivate();
+            onToggle()
           }}
         >
         {isActive ? (
@@ -199,85 +184,83 @@ export function VacancyCard({
       </Button>
       </div>
     );
-  }, [isActive, isSaving, onActivate, onDeactivate, onDelete, onSave]);
+  }, [isActive, isSaving, onToggle, onDelete]);
+
+  useEffect(() => {
+    if (isActive) {
+     // titleRef.current?.focus();
+    }
+  }, [isActive]);
 
   return (
     <article
-      className={`relative flex flex-col gap-3 rounded-2xl border p-4 shadow-sm cursor-pointer bg-white ${isActive ? "border-violet-500" : "border-zinc-200"}`}
-      onClick={() => {
-        if (!isActive) onActivate();
-      }}
+      className={`relative flex flex-col cursor-pointer bg-white`}
     >
-      <header className="relative flex w-full items-start justify-between gap-2">
-        <div className="flex w-full flex-col gap-1 text-lg">
-         
-          <div></div>
-            <div className="sticky top-0 z-40 bg-white/90 backdrop-blur flex flex-col gap-2">
-              {isActive && (
-                <>
-                <input
-                    ref={titleRef}
-                    className="w-full max-w-[600px] border-none bg-transparent text-[20px] font-semibold outline-none focus:ring-0"
-                    value={vacancy.title}
-                    onChange={(e) => onUpdateVacancy({ title: e.target.value })}
-                    placeholder="Vacancy title"
-                  />
-                <input
-                  className="w-full max-w-[400px] border-none bg-transparent text-[20px] text-zinc-600 outline-none focus:ring-0"
-                  value={vacancy.company ?? ""}
-                  onChange={(e) => onUpdateVacancy({ company: e.target.value })}
-                  placeholder="Company"/>
-                </>)}
+      <div className="sticky top-0 h-[28px] w-full bg-white backdrop-blu z-50"></div>
+      <div className={cx("flex flex-col relative")}>
+        <header className={cx("top-4 z-40 bg-white/70 backdrop-blur z-50 rounded-2xl !border-b-0 !rounded-b-none border border-gray-300", isActive ? "border-violet-500 sticky" : "static border-gray-300")}>
+        <div onMouseDown={() => onToggle()} className={cx("flex flex-col gap-2  p-4 bg-transparent", isActive ? "border-violet-500" : "border-gray-300")}>
+            <input
+              ref={titleRef}
+              className="w-full max-w-[600px] border-none bg-transparent text-[20px] font-semibold outline-none focus:ring-0"
+              value={vacancy.title}
+              onMouseUp={(e) => e.stopPropagation()}
+              onChange={(e) => {
+                onUpdateVacancy({ title: e.target.value })}
+              }
+              placeholder="Vacancy title"
+              onFocus={(e) => onToggle(true)}
+            />
+            <input
+              onMouseUp={(e) => e.stopPropagation()}
+              className="w-full max-w-[400px] border-none bg-transparent text-[20px] text-zinc-600 outline-none focus:ring-0"
+              value={vacancy.company ?? ""}
+              onChange={(e) => onUpdateVacancy({ company: e.target.value })}
+              placeholder="Company"
+              onFocus={(e) => onToggle(true)}
+            />
+            
+            {buttonsJSX}
+          </div>      
+        </header>
 
-               {!isActive && (
-                <>
-                  <div className="text-[20px] font-semibold text-zinc-900">
-                    {vacancy.title || "Untitled vacancy"}
-                  </div>
-                  {vacancy.company && (
-                    <div className="text-[20px] text-zinc-600">{vacancy.company}</div>
-                  )}
-               </>)}
-
-               {buttonsJSX}
-            </div>
-              
-            {isActive && <CvRichEditor
-                  size="small"
-                  className="max-h-auto mt-2 w-full"
-                  valueHtml={vacancy.description}
-                  onChangeHtml={(next) =>
-                    onUpdateVacancy({
-                      description: next,
-                    })
-                  }
-                  autoFocus={Boolean(vacancy.title.trim())}
-            />}
-        </div>
-
-
-        
-      </header>
-
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span></span>
-          {vacancy.planned_stages > 0 && (
-            <span className="text-lg text-zinc-500">
-              Planned: {vacancy.planned_stages} stages
-            </span>
-          )}
-          {isActive && <Button
+        <div className={cx(" flex flex-col gap-2 p-4 pt-0 border !border-t-0 !border-b-0", isActive ? "border-violet-500 " : "static border-gray-300")}>
+          {isActive && <CvRichEditor
             size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onOpenStageCountModal();
-            }}
-          >
-            Add stage
-          </Button>}
-        </div>
-        {stagesJSX}
+            onMouseUp={(e) => e.stopPropagation()}
+            className="max-h-auto mt-2 w-full"
+            classToolbar="!top-[114px]"
+            valueHtml={vacancy.description}
+            onChangeHtml={(next) =>
+              onUpdateVacancy({
+                description: next,
+              })
+            }
+          />}
+
+          <div className="flex items-center justify-between">
+            <span></span>
+            {vacancy.planned_stages > 0 && (
+              <span className="text-lg text-zinc-500">
+                Planned: {vacancy.planned_stages} stages
+              </span>
+            )}
+            {isActive && <Button
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onOpenStageCountModal();
+              }}
+            >
+              Add stage
+            </Button>}
+          </div>
+          {stagesJSX}
+        </div> 
+      </div>
+      
+      <div className={cx("flex flex-col gap-2 sticky top-0 z-60 border !border-t-0 rounded-2xl !rounded-t-none h-4", isActive ? "border-violet-500" : "border-gray-300")}>
+          
       </div>
     </article>
   );

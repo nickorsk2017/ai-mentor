@@ -117,3 +117,14 @@ export async function updateVacancyOnBackend(
   const raw = (await res.json()) as VacancyApiRecord;
   return mapVacancyFromApi(raw);
 }
+
+export async function deleteVacancyOnBackend(vacancyId: string): Promise<void> {
+  const userId = getOrCreateUserId();
+  const res = await fetch(`${API_BASE}/vacancies/${vacancyId}?user_id=${userId}`, {
+    method: "DELETE",
+  });
+
+  if (!res.ok) {
+    throw new Error(`Delete vacancy failed (${res.status})`);
+  }
+}

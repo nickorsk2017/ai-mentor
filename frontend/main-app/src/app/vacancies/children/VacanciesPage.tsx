@@ -1,12 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useMentor, VacancyStage } from "../../mentor-context";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMentor, Vacancy, VacancyStage } from "../../mentor-context";
 import { Modal } from "../../../shared/ui/Modal";
 import { Button } from "@/shared/ui/Button";
 import { VacancyCard } from "./VacancyCard";
 import {
+  deleteVacancyFromMatchingIndex,
+  indexVacancyForMatching,
+} from "@/shared/api/matchingApi";
+import {
   createVacancyOnBackend,
+  deleteVacancyOnBackend,
   updateVacancyOnBackend,
 } from "@/shared/api/vacancyApi";
 
@@ -26,6 +31,7 @@ export function VacanciesPage() {
   const [stageCountInput, setStageCountInput] = useState<string>("");
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
   const [savingVacancyId, setSavingVacancyId] = useState<string | null>(null);
+  const timerSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   useEffect(() => {
     fetchVacancies();
@@ -33,19 +39,27 @@ export function VacanciesPage() {
 
   const handleAddVacancy = async () => {
     const draft = {
-      title: "New vacancy",
+      title: "",
       company: "",
       description: "",
     };
 
     const saved = await createVacancyOnBackend(draft);
+    setActiveVacancyId(saved.id);
     addVacancy(saved);
+
+    try {
+      await indexVacancyForMatching(saved);
+    } catch (e) {
+      console.warn("[vacancies] Pinecone index skipped:", e);
+    }
   };
+
 
   const addStage = (vacancyId: string) => {
     const newStage: VacancyStage = {
       id: crypto.randomUUID(),
-      name: "New stage",
+      name: "",
       status: "pending",
       notes: "",
     };
@@ -93,32 +107,59 @@ export function VacanciesPage() {
     setStageCountInput("");
   };
 
-  const handleSaveVacancy = async (vacancyId: string) => {
-    const v = vacancies.find((x) => x.id === vacancyId);
-    if (!v) return;
-    setSavingVacancyId(vacancyId);
+  const handleSaveVacancy = async (vacancyId: string, patch: Partial<Vacancy>) => {
+    if (timerSaveRef.current) {
+      clearTimeout(timerSaveRef.current);
+    }
+
+    timerSaveRef.current = setTimeout(async () => {
+        const vacancy = vacancies.find((x) => x.id === vacancyId);
+        if (!vacancy) return;
+        setSavingVacancyId(vacancyId);
+
+        const data = {...vacancy, ...patch, stages: patch.stages ?? []};
+
+        try {
+          const mapped = await updateVacancyOnBackend(vacancyId, data);
+
+          updateVacancy(mapped.id, {
+            title: mapped.title,
+            company: mapped.company,
+            description: mapped.description,
+            planned_stages: mapped.planned_stages,
+            created_at: mapped.created_at,
+          });
+
+          updateVacancyStages(mapped.id, mapped.stages ?? []);
+        } catch (e) {
+          console.error(e);
+          window.alert("Could not save vacancy. Check the API is running.");
+        } finally {
+          setSavingVacancyId(null);
+        }
+    }, 3000);
+  };
+
+  const onUpdateVacancyHandler = (vacancyId: string, patch: Partial<Vacancy>) => {
+    updateVacancy(vacancyId, patch);
+    handleSaveVacancy(vacancyId, patch);
+  };
+
+  const handleDeleteVacancy = async (vacancyId: string) => {
     try {
-      const mapped = await updateVacancyOnBackend(vacancyId, {
-        title: v.title,
-        company: v.company,
-        description: v.description,
-        planned_stages: v.planned_stages,
-        stages: v.stages ?? [],
-      });
-      updateVacancy(mapped.id, {
-        title: mapped.title,
-        company: mapped.company,
-        description: mapped.description,
-        planned_stages: mapped.planned_stages,
-        created_at: mapped.created_at,
-      });
-      updateVacancyStages(mapped.id, mapped.stages ?? []);
+      await deleteVacancyOnBackend(vacancyId);
+      deleteVacancy(vacancyId);
     } catch (e) {
       console.error(e);
-      window.alert("Could not save vacancy. Check the API is running.");
-    } finally {
-      setSavingVacancyId(null);
+      window.alert("Could not delete vacancy. Check the API is running.");
+      return;
     }
+
+    /*try {
+      await deleteVacancyFromMatchingIndex(vacancyId);
+    } catch (e) {
+      console.warn("[vacancies] Pinecone index delete skipped:", e);
+    }*/
   };
 
   return (
@@ -127,7 +168,7 @@ export function VacanciesPage() {
           <h1 className="text-[30px] font-semibold text-zinc-950">Vacancies</h1>
         </header>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col">
           {vacancies.length === 0 ? (
             <p className="text-lg text-zinc-500">
               No vacancies added yet. Start by adding a role above.
@@ -139,14 +180,11 @@ export function VacanciesPage() {
                 vacancy={vacancy}
                 isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
                 isSaving={savingVacancyId === vacancy.id}
-                onActivate={() => setActiveVacancyId(vacancy.id)}
-                onDeactivate={() => setActiveVacancyId(null)}
-                onDelete={() => deleteVacancy(vacancy.id)}
-                onSave={() => handleSaveVacancy(vacancy.id)}
+                onToggle={(isActive) => setActiveVacancyId((activeVacancyId !== vacancy.id || isActive) ? vacancy.id : null)}
+                onDelete={() => handleDeleteVacancy(vacancy.id)}
                 onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
-                onUpdateVacancy={(patch) => updateVacancy(vacancy.id, patch)}
-                onUpdateStage={(stageId, patch) =>
-                  updateStage(vacancy.id, stageId, patch)
+                onUpdateVacancy={(patch) => onUpdateVacancyHandler(vacancy.id, patch)}
+                onUpdateStages={(stages) => onUpdateVacancyHandler(vacancy.id, {stages})
                 }
                 onRemoveStage={(stageId) => removeStage(vacancy.id, stageId)}
               />
@@ -156,7 +194,7 @@ export function VacanciesPage() {
             type="button"
             onClick={handleAddVacancy}
             appearance="violet"
-            className="self-end !sticky !bottom-2 z-45"
+            className="mt-[28px] self-end !sticky !bottom-2 z-60"
           >
             Add vacancy
           </Button>
