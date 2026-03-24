@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMentor, Vacancy, VacancyStage } from "../../mentor-context";
 import { Modal } from "../../../shared/ui/Modal";
-import { Button } from "@/shared/ui/Button";
+import { Header } from "@/shared/layout/Header";
 import { VacancyCard } from "./VacancyCard";
 import {
   deleteVacancyFromMatchingIndex,
@@ -32,10 +32,22 @@ export function VacanciesPage() {
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
   const [savingVacancyId, setSavingVacancyId] = useState<string | null>(null);
   const timerSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const listEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     fetchVacancies();
   }, [fetchVacancies]);
+
+  const scrollToBottomSmooth = () => {
+    setTimeout(() => {
+    requestAnimationFrame(() => {
+      listEndRef.current?.scrollIntoView({
+        behavior: "smooth",
+          block: "end",
+        });
+      });
+    }, 100);
+  };
 
   const handleAddVacancy = async () => {
     const draft = {
@@ -47,6 +59,7 @@ export function VacanciesPage() {
     const saved = await createVacancyOnBackend(draft);
     setActiveVacancyId(saved.id);
     addVacancy(saved);
+    scrollToBottomSmooth();
 
     try {
       await indexVacancyForMatching(saved);
@@ -165,49 +178,46 @@ export function VacanciesPage() {
       return;
     }
 
-    /*try {
+    try {
       await deleteVacancyFromMatchingIndex(vacancyId);
     } catch (e) {
       console.warn("[vacancies] Pinecone index delete skipped:", e);
-    }*/
+    }
   };
 
   return (
       <section className="flex w-full flex-col gap-4">
-        <header className="flex flex-col">
-          <h1 className="text-[30px] font-semibold text-zinc-950">Vacancies</h1>
-        </header>
+        <Header
+          title="Vacancies"
+          actionLabel="Add Vacancy"
+          onActionClick={handleAddVacancy}
+        />
 
-        <div className="flex flex-col">
-          {vacancies.length === 0 ? (
-            <p className="text-lg text-zinc-500">
-              No vacancies added yet. Start by adding a role above.
-            </p>
-          ) : (
-            vacancies.map((vacancy) => (
-              <VacancyCard
-                key={vacancy.id}
-                vacancy={vacancy}
-                isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
-                isSaving={savingVacancyId === vacancy.id}
-                onToggle={(isActive) => setActiveVacancyId((activeVacancyId !== vacancy.id || isActive) ? vacancy.id : null)}
-                onDelete={() => handleDeleteVacancy(vacancy.id)}
-                onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
-                onUpdateVacancy={(patch) => onUpdateVacancyHandler(vacancy.id, patch)}
-                onUpdateStages={(stages) => onUpdateVacancyHandler(vacancy.id, {stages})
-                }
-                onRemoveStage={(stageId) => removeStage(vacancy.id, stageId)}
-              />
-            ))
-          )}
-          <Button
-            type="button"
-            onClick={handleAddVacancy}
-            appearance="violet"
-            className="mt-[28px] self-end !sticky !bottom-2 z-60"
-          >
-            Add vacancy
-          </Button>
+        <div className="flex flex-col w-full items-center justify-center">
+          <div className="w-full max-w-6xl">
+            {vacancies.length === 0 ? (
+              <p className="text-lg text-zinc-500">
+                No vacancies added yet. Start by adding a role above.
+              </p>
+            ) : (
+              vacancies.map((vacancy) => (
+                <VacancyCard
+                  key={vacancy.id}
+                  vacancy={vacancy}
+                  isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
+                  isSaving={savingVacancyId === vacancy.id}
+                  onToggle={(isActive) => setActiveVacancyId((activeVacancyId !== vacancy.id || isActive) ? vacancy.id : null)}
+                  onDelete={() => handleDeleteVacancy(vacancy.id)}
+                  onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
+                  onUpdateVacancy={(patch) => onUpdateVacancyHandler(vacancy.id, patch)}
+                  onUpdateStages={(stages) => onUpdateVacancyHandler(vacancy.id, {stages})
+                  }
+                  onRemoveStage={(stageId) => removeStage(vacancy.id, stageId)}
+                />
+              ))
+            )}
+            <div ref={listEndRef} />
+          </div>
         </div>
 
         <Modal

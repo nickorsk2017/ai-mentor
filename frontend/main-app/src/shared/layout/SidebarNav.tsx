@@ -70,7 +70,7 @@ export function SidebarNav() {
   const pathname = usePathname();
 
   return (
-    <aside className="sticky top-4 mr-4 flex h-[calc(100vh-2rem)] w-60 flex-col rounded-[26px] border border-[#e7e6f5] bg-[#f2f1fa] p-4 shadow-[0_2px_10px_rgba(19,17,56,0.05)]">
+    <aside className="sticky top-4 mr-4 flex h-[calc(100vh-2rem)] w-60 flex-col rounded-[26px] border border-[#e7e6f5] bg-[#f1f4fa] p-4 shadow-[0_2px_10px_rgba(19,17,56,0.05)]">
       <div className="mb-3 flex items-center gap-1.5 px-1 text-base">
         <span className="font-semibold text-[#5f41d5]">AI</span>
         <span className="font-semibold text-zinc-800">Carrier</span>
@@ -86,7 +86,7 @@ export function SidebarNav() {
             <Link
               key={item.href}
               href={item.href}
-              className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition ${
+              className={`relative flex items-center gap-2.5 rounded-xl px-3 py-2 text-base font-medium transition ${
                 active
                   ? "bg-white/55 text-[#5f41d5]"
                   : "text-zinc-700 hover:bg-white/45 hover:text-zinc-900"

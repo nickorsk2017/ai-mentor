@@ -9,6 +9,7 @@ import {
   getLastSavedCvFromBackend,
   saveCvToBackend,
 } from "../../shared/api/cvApi";
+import { Header } from "@/shared/layout/Header";
 
 export default function MyCvPage() {
   const { cv, setCv } = useMentor();
@@ -101,14 +102,12 @@ export default function MyCvPage() {
 
   return (
     <section className="flex w-full flex-col gap-4">
-      <header className="sticky top-0 z-50 flex flex-col border-b border-white/70 bg-white">
-        <h1 className="flex items-center gap-3 text-[30px] font-semibold text-zinc-950">
-          <span>My CV</span>
-          {isLoading && <CircleLoader />}
-        </h1>
-      </header>
+      <Header
+        title="My CV"
+      />
 
-      <div className="flex flex-col">
+      <div className="flex flex-col w-fulljustify-center items-center">
+        <div className="w-full  max-w-6xl ">
 
           <CvRichEditor valueHtml={draftHtml} onChangeHtml={handleChangeHtml} classToolbar="!top-11" />
           <p className="text-[11px] text-zinc-500">
@@ -116,6 +115,7 @@ export default function MyCvPage() {
             engine uses this text to compare with vacancies.
           </p>
         </div>
+      </div>  
     </section>
   );
 }
