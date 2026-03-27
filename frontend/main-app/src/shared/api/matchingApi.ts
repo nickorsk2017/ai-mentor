@@ -1,21 +1,27 @@
 import { getOrCreateUserId } from "./cvApi";
 
 const DEFAULT_MATCHING_BASE = "http://localhost:8001";
+const DEFAULT_RAG_INDEX_BASE = "http://localhost:8002";
 
 export const MATCHING_API_BASE =
   process.env.NEXT_PUBLIC_AI_MATCHING_MICROSERVICE_URL?.replace(/\/$/, "") ??
   DEFAULT_MATCHING_BASE;
 
+/** Vacancy upsert/delete in Pinecone (rag-index-microservice). */
+export const RAG_INDEX_API_BASE =
+  process.env.NEXT_PUBLIC_RAG_INDEX_MICROSERVICE_URL?.replace(/\/$/, "") ??
+  DEFAULT_RAG_INDEX_BASE;
+
 export async function getVacanciesForMatching(): Promise<Entity.Vacancy[]> {
   const userId = getOrCreateUserId();
   const res = await fetch(
-    `${MATCHING_API_BASE}/v1/vacancies?user_id=${encodeURIComponent(userId)}`
+    `${MATCHING_API_BASE}/v1/rankings?user_id=${encodeURIComponent(userId)}`
   );
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(
-      `Get vacancies for matching failed (${res.status})${detail ? `: ${detail}` : ""}`
+      `Get vacancies for ranking failed (${res.status})${detail ? `: ${detail}` : ""}`
     );
   }
 
@@ -32,7 +38,7 @@ export async function indexVacancyForMatching(vacancy: Entity.Vacancy): Promise<
     [title, company].filter(Boolean).join(" — ") ||
     "No description yet.";
 
-  const res = await fetch(`${MATCHING_API_BASE}/v1/vacancies/index`, {
+  const res = await fetch(`${RAG_INDEX_API_BASE}/v1/vacancies/index`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -56,7 +62,7 @@ export async function deleteVacancyFromMatchingIndex(
   vacancyId: string
 ): Promise<void> {
   const res = await fetch(
-    `${MATCHING_API_BASE}/v1/vacancies/index/${encodeURIComponent(vacancyId)}`,
+    `${RAG_INDEX_API_BASE}/v1/vacancies/index/${encodeURIComponent(vacancyId)}`,
     {
       method: "DELETE",
     }

@@ -187,81 +187,79 @@ export function VacanciesPage() {
   };
 
   return (
-      <section className="flex w-full flex-col">
-        <Header
-          title="Vacancies"
-          actionLabel="Add Vacancy"
-          onActionClick={handleAddVacancy}
-        />
+    <Container className="flex w-full flex-colgap-4">
+    <Header
+      title="Vacancies"
+      actionLabel="Add Vacancy"
+      onActionClick={handleAddVacancy}
+    />
 
-        <Container className="gap-4">
-            {vacancies.length === 0 ? (
-              <p className="text-lg text-zinc-500">
-                No vacancies added yet. Start by adding a role above.
-              </p>
-            ) : (
-              vacancies.map((vacancy) => (
-                <VacancyCard
-                  key={vacancy.id}
-                  vacancy={vacancy}
-                  isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
-                  isSaving={savingVacancyId === vacancy.id}
-                  onToggle={(isActive) => setActiveVacancyId((activeVacancyId !== vacancy.id || isActive) ? vacancy.id : null)}
-                  onDelete={() => handleDeleteVacancy(vacancy.id)}
-                  onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
-                  onUpdateVacancy={(patch) => onUpdateVacancyHandler(vacancy.id, patch)}
-                  onUpdateStages={(stages) => onUpdateVacancyHandler(vacancy.id, {stages})
-                  }
-                  onRemoveStage={(stageId) => removeStage(vacancy.id, stageId)}
-                />
-              ))
-            )}
-            <div ref={listEndRef} />
-        </Container>
+      {vacancies.length === 0 ? (
+        <p className="text-lg text-zinc-500">
+          No vacancies added yet. Start by adding a role above.
+        </p>
+      ) : (
+        vacancies.map((vacancy) => (
+          <VacancyCard
+            key={vacancy.id}
+            vacancy={vacancy}
+            isActive={vacancy.id === activeVacancyId && activeVacancyId !== null}
+            isSaving={savingVacancyId === vacancy.id}
+            onToggle={(isActive) => setActiveVacancyId((activeVacancyId !== vacancy.id || isActive) ? vacancy.id : null)}
+            onDelete={() => handleDeleteVacancy(vacancy.id)}
+            onOpenStageCountModal={() => openStageCountModal(vacancy.id)}
+            onUpdateVacancy={(patch) => onUpdateVacancyHandler(vacancy.id, patch)}
+            onUpdateStages={(stages) => onUpdateVacancyHandler(vacancy.id, {stages})
+            }
+            onRemoveStage={(stageId) => removeStage(vacancy.id, stageId)}
+          />
+        ))
+      )}
+      <div ref={listEndRef} />
 
-        <Modal
-          open={stageCountModalVacancyId !== null}
-          title="Do you know count of stages?"
-          description="If you know how many stages this process has, enter it below. This number is stored and used in your analytics."
-          onClose={() => {
-            setStageCountModalVacancyId(null);
-            setStageCountInput("");
-          }}
-        >
-          <div className="flex flex-col gap-3 text-lg">
-            <label className="flex flex-col gap-1">
-              <span className="font-medium text-zinc-800">
-                Planned number of stages
-              </span>
-              <input
-                type="number"
-                min={1}
-                className="w-32 rounded-md border border-zinc-200 px-2 py-1 text-lg text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-900/5"
-                value={stageCountInput}
-                onChange={(e) => setStageCountInput(e.target.value)}
-              />
-            </label>
-            <div className="flex justify-end gap-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setStageCountModalVacancyId(null);
-                  setStageCountInput("");
-                }}
-                className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-lg font-medium text-zinc-700 hover:bg-zinc-100"
-              >
-                Skip
-              </button>
-              <button
-                type="button"
-                onClick={saveStageCountAndAddStage}
-                className="rounded-full bg-zinc-900 px-4 py-1 text-lg font-semibold text-white hover:bg-zinc-800"
-              >
-                Save & add stage
-              </button>
-            </div>
-          </div>
-        </Modal>
-      </section>
+      <Modal
+      open={stageCountModalVacancyId !== null}
+      title="Do you know count of stages?"
+      description="If you know how many stages this process has, enter it below. This number is stored and used in your analytics."
+      onClose={() => {
+        setStageCountModalVacancyId(null);
+        setStageCountInput("");
+      }}
+    >
+      <div className="flex flex-col gap-3 text-lg">
+        <label className="flex flex-col gap-1">
+          <span className="font-medium text-zinc-800">
+            Planned number of stages
+          </span>
+          <input
+            type="number"
+            min={1}
+            className="w-32 rounded-md border border-zinc-200 px-2 py-1 text-lg text-zinc-900 outline-none focus:ring-2 focus:ring-zinc-900/5"
+            value={stageCountInput}
+            onChange={(e) => setStageCountInput(e.target.value)}
+          />
+        </label>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              setStageCountModalVacancyId(null);
+              setStageCountInput("");
+            }}
+            className="rounded-full border border-zinc-200 bg-white px-3 py-1 text-lg font-medium text-zinc-700 hover:bg-zinc-100"
+          >
+            Skip
+          </button>
+          <button
+            type="button"
+            onClick={saveStageCountAndAddStage}
+            className="rounded-full bg-zinc-900 px-4 py-1 text-lg font-semibold text-white hover:bg-zinc-800"
+          >
+            Save & add stage
+          </button>
+        </div>
+      </div>
+    </Modal>
+  </Container>
   );
 }

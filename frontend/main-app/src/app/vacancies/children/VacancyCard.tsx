@@ -1,20 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { cx } from "@/libs/utils";
-import type { Vacancy, VacancyStage } from "@/app/mentor-context";
 import { Button } from "@/shared/ui/Button";
 import { RichEditor } from "@/shared/ui/RichEditor";
 
 type VacancyCardProps = {
-  vacancy: Vacancy;
+  vacancy: Entity.Vacancy;
   isActive: boolean;
   isSaving?: boolean;
   onToggle: (isActive?: boolean) => void;
   onDelete: () => void;
   onOpenStageCountModal: () => void;
-  onUpdateVacancy: (patch: Partial<Omit<Vacancy, "id" | "stages">>) => void;
-  onUpdateStages: (stages: VacancyStage[]) => void;
+  onUpdateVacancy: (patch: Partial<Entity.Vacancy>) => void;
+  onUpdateStages: (stages: Entity.VacancyStage[]) => void;
   onRemoveStage: (stageId: string) => void;
 };
 
@@ -47,7 +46,7 @@ export function VacancyCard({
   const stagesJSX = useMemo(() => {
     if(!isActive) return null;
 
-    const onUpdateStage = (stageId: string, patch: Partial<VacancyStage>) => {
+    const onUpdateStage = (stageId: string, patch: Partial<Entity.VacancyStage>) => {
       onUpdateStages(vacancy.stages?.map((s) => s.id === stageId ? { ...s, ...patch } : s) ?? []);
     };
 
@@ -85,7 +84,7 @@ export function VacancyCard({
                       value={stage.status}
                       onChange={(e) =>
                         onUpdateStage(stage.id, {
-                          status: e.target.value as VacancyStage["status"],
+                          status: e.target.value as Entity.VacancyStage["status"],
                         })
                       }
                     >

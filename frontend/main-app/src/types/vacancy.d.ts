@@ -17,7 +17,7 @@ namespace Entity {
         description: string;
         planned_stages: number;
         created_at: string;
-        match_score?: number;
+        match_score: number;
         reason?: string;
         tech_score?: number;
         years_score?: number;

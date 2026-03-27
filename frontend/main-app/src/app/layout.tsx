@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${geistMono.variable} antialiased text-zinc-900`}
+        className={`${inter.variable} ${geistMono.variable} antialiased text-zinc-900 relative`}
       >
         <Providers>
           <div className="min-h-screen flex items-start px-4 py-4 text-sm text-zinc-800">

@@ -88,19 +88,16 @@ export default function MyCvPage() {
   };
 
   return (
-    <section className="flex w-full flex-col gap-4">
+    <Container className="flex w-full flex-col gap-4">
       <Header
         title="My CV"
       />
-
-      <Container>
-        <RichEditor valueHtml={draftHtml} onChangeHtml={handleChangeHtml} classToolbar="!top-[64px]" />
-        <p className="text-[11px] text-zinc-500">
-          Tip: Include key skills, technologies, and achievements. The ranking
-          engine uses this text to compare with vacancies.
-        </p>
-      </Container>
-    </section>
+      <RichEditor valueHtml={draftHtml} onChangeHtml={handleChangeHtml} classToolbar="!top-[64px]" />
+      <p className="text-[11px] text-zinc-500">
+        Tip: Include key skills, technologies, and achievements. The ranking
+        engine uses this text to compare with vacancies.
+      </p>
+  </Container>
   );
 }
 

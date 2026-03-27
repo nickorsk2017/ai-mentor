@@ -1,12 +1,39 @@
 "use client";
-import { useMemo } from "react";
 
 type ComponentProps = {
-  vacancy: Entity.Vacancy;
+  vacancy: RankedVacancy;
   index: number;
   isActive: boolean;
   onActivate: () => void;
 };
+
+export type RankedVacancy = Entity.Vacancy & {
+  fitScore: number;
+  completedStages: number;
+  totalStages: number;
+  failedStages: number;
+  recommendations: string[];
+  whyScore: string | null;
+  techScore: number | null;
+  yearsScore: number | null;
+  otherScore: number | null;
+  domainScore: number | null;
+  alignedSkills: string[];
+  notAlignedSkills: string[];
+};
+
+function scoreTone(score: number): string {
+  if (score >= 85) return "from-emerald-500 to-teal-400";
+  if (score >= 65) return "from-cyan-500 to-sky-400";
+  if (score >= 45) return "from-amber-500 to-yellow-400";
+  return "from-rose-500 to-orange-400";
+}
+
+function chipStyle(kind: "aligned" | "missing"): string {
+  return kind === "aligned"
+    ? "border-violet-200 bg-violet-100 text-violet-800"
+    : "border-zinc-200 bg-zinc-100 text-zinc-700";
+}
 
 export function VacancyMatchingCard({
   vacancy,
@@ -14,114 +41,104 @@ export function VacancyMatchingCard({
   isActive,
   onActivate,
 }: ComponentProps) {
-  console.log("vacancy", vacancy);
-
-  const headerJSX = useMemo(() => {
-    return (
-      <header className="flex items-start justify-between gap-2">
-      <div className="flex items-center gap-2">
-        <span className="text-lg font-semibold text-zinc-400">#{index}</span>
-        <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-semibold text-zinc-900">
-            {vacancy.title || "Untitled vacancy"}
-          </h2>
-          {vacancy.company && (
-            <p className="text-[11px] text-zinc-600">{vacancy.company}</p>
-          )}
-        </div>
-      </div>
-      <div className="flex flex-col items-end gap-1">
-        <span className="text-[11px] font-medium text-zinc-500">Fit score</span>
-        <div className="flex items-center gap-2">
-          <div className="h-1.5 w-24 overflow-hidden rounded-full bg-zinc-100">
-            <div
-              className="h-full rounded-full bg-emerald-500"
-              style={{ width: `${vacancy.match_score}%` }}
-            />
-          </div>
-          <span className="text-lg font-semibold text-zinc-900">
-            {vacancy.match_score}%
-          </span>
-        </div>
-      </div>
-    </header>
-    );
-  }, [index]);
-
-  const reasoningJSX = useMemo(() => {
-    return (
-      <div className="flex flex-col gap-1 rounded-lg bg-zinc-50 p-2">
-        <span className="font-medium text-zinc-700">Reasoning</span>
-        <span className="text-zinc-600" dangerouslySetInnerHTML={{ __html: vacancy.reason ?? "" }} />
-      </div>
-    );
-  }, [vacancy.reason]);
+  const safeScore = Math.max(0, Math.min(100, Math.round(vacancy.fitScore ?? 0)));
+  const completedStages = vacancy.completedStages ?? 0;
+  const totalStages = vacancy.totalStages ?? Math.max(vacancy.planned_stages ?? 1, 1);
+  const failedStages = vacancy.failedStages ?? 0;
+  const progressPct = Math.max(0, Math.min(100, Math.round((completedStages / totalStages) * 100)));
+  const aligned = vacancy.alignedSkills ?? [];
+  const missing = vacancy.notAlignedSkills ?? [];
 
   return (
     <article
-      className={`flex flex-col gap-3 rounded-2xl border bg-white p-4 shadow-sm cursor-pointer ${
-        isActive ? "border-violet-500" : "border-zinc-200"
+      className={`flex cursor-pointer flex-col gap-4 rounded-2xl border bg-white p-4 shadow-sm transition ${
+        isActive ? "border-violet-400 shadow-violet-100" : "border-zinc-200 hover:border-zinc-300"
       }`}
       onClick={onActivate}
     >
-      {headerJSX}
-      {reasoningJSX}
-
-      {isActive && vacancy.description && (
-        <div
-          className="prose prose-sm max-w-none text-zinc-600"
-          dangerouslySetInnerHTML={{ __html: vacancy.description }}
-        />
-      )}
-
-      <div className="grid gap-2 text-[11px] md:grid-cols-3">
-        <div className="flex flex-col gap-1 rounded-lg bg-zinc-50 p-2">
-          <span className="font-medium text-zinc-700">Interview progress</span>
-          <span className="text-zinc-600">
-            1 / 3 stages completed
-          </span>
-          <span className="text-red-600">
-            1 failed stage
-          </span>
-          {vacancy.planned_stages === 0 && (
-            <span className="text-zinc-500">No stages tracked yet.</span>
-          )}
+      <header className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-lg font-semibold leading-tight text-zinc-900">
+            <span className="mr-2 text-zinc-700">#{index}</span>
+            {vacancy.title || "Untitled vacancy"}
+          </h2>
+          <p className="mt-1  text-sm text-zinc-500">
+            {vacancy.company || "Unknown company"}
+          </p>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-lg bg-zinc-50 p-2">
-          <span className="font-medium text-zinc-700">CV keyword overlap</span>
-          <span className="text-zinc-600">
-            Fit score combines keyword overlap between your CV and the vacancy
-            with your interview progress.
-          </span>
+        <div className={`rounded-2xl bg-gradient-to-r px-4 py-2 text-white ${scoreTone(safeScore)}`}>
+          <p className="text-xs uppercase tracking-wide text-white/80">Fit</p>
+          <p className="text-3xl font-bold leading-none">{safeScore}%</p>
+        </div>
+      </header>
+
+      <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <p className="text-sm font-medium text-zinc-700">Reasoning</p>
+        <p className="mt-1 text-base text-zinc-700">{vacancy.whyScore || "No explanation returned by the model."}</p>
+      </div>
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <div className="rounded-xl border border-zinc-200 p-3">
+          <p className="text-sm font-medium text-zinc-700">Interview Progress</p>
+          <p className="mt-1 text-sm text-zinc-600">{completedStages} / {totalStages} stages completed</p>
+          <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${progressPct}%` }} />
+          </div>
+          <p className="mt-2 text-sm text-rose-600">{failedStages > 0 ? `${failedStages} failed stage${failedStages > 1 ? "s" : ""}` : "No failed stages"}</p>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-lg bg-violet-50 p-2">
-          <span className="font-medium text-violet-800">AI scoring details</span>
-          <span className="text-violet-700">
-            Tech: {vacancy.tech_score ?? "—"} | Years: {vacancy.years_score ?? "—"}
-          </span>
-          <span className="text-violet-700">
-            Domain: {vacancy.domain_score ?? "—"} | Other: {vacancy.other_score ?? "—"}
-          </span>
-          {(vacancy.aligned_skills || []).length > 0 && (
-            <span className="text-violet-700">
-              Aligned skills: {vacancy.aligned_skills?.join(", ")}
-            </span>
-          )}
-          {(vacancy.not_aligned_skills || []).length > 0 && (
-            <span className="text-violet-700">
-              Not aligned skills: {vacancy.not_aligned_skills?.join(", ")}
-            </span>
-          )}
+        <div className="rounded-xl border border-zinc-200 p-3">
+          <p className="text-sm font-medium text-zinc-700">AI Score Breakdown</p>
+          <p className="mt-1 text-sm text-zinc-600">Tech: {vacancy.techScore ?? "—"} | Years: {vacancy.yearsScore ?? "—"}</p>
+          <p className="text-sm text-zinc-600">Domain: {vacancy.domainScore ?? "—"} | Other: {vacancy.otherScore ?? "—"}</p>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-lg bg-emerald-50 p-2">
-          <span className="font-medium text-emerald-800">
-            AI-style recommendations
-          </span>
+        <div className="rounded-xl border border-violet-200 bg-violet-50 p-3">
+          <p className="text-sm font-medium text-violet-800">Recommendations</p>
+          <p className="mt-1 text-sm text-violet-700">
+            {vacancy.recommendations[0] || "Keep your CV impact-focused and aligned with vacancy requirements."}
+          </p>
         </div>
       </div>
+
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-zinc-700">Aligned Skills</p>
+        <div className="flex flex-wrap gap-2">
+          {aligned.length > 0 ? (
+            aligned.map((skill) => (
+              <span
+                key={`aligned-${vacancy.id}-${skill}`}
+                className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${chipStyle("aligned")}`}
+              >
+                {skill}
+              </span>
+            ))
+          ) : (
+            <span className="text-sm text-zinc-500">No aligned skills extracted.</span>
+          )}
+        </div>
+      </div>
+
+      {isActive && (
+        <div className="space-y-2">
+          <p className="text-sm font-medium text-zinc-700">Missing / Weak Skills</p>
+          <div className="flex flex-wrap gap-2">
+            {missing.length > 0 ? (
+              missing.map((skill) => (
+                <span
+                  key={`missing-${vacancy.id}-${skill}`}
+                  className={`inline-flex items-center rounded-full border px-3 py-1 text-sm ${chipStyle("missing")}`}
+                >
+                  {skill}
+                </span>
+              ))
+            ) : (
+              <span className="text-sm text-zinc-500">No missing skills reported.</span>
+            )}
+          </div>
+        </div>
+      )}
     </article>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { getVacanciesForMatching } from "../../shared/api/matchingApi";
 import { useMentor } from "../mentor-context";
+import Image from "next/image";
 import { VacancyMatchingCard, type RankedVacancy } from "./children/VacancyMatchingCard";
 
 function computeFitScore(cvText: string, vacancy: Entity.Vacancy): RankedVacancy {
@@ -111,10 +112,19 @@ export default function RankingPage() {
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadVacancies = async () => { 
-      const vacancies = await getVacanciesForMatching();
-      setVacancies(vacancies);
-      setLoadingVacancies(false);
+    const loadVacancies = async () => {
+      setLoadingVacancies(true);
+      setVacanciesError(null);
+      try {
+        const data = await getVacanciesForMatching();
+        setVacancies(data);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to load vacancies";
+        setVacanciesError(message);
+      } finally {
+        setLoadingVacancies(false);
+      }
     };
 
     loadVacancies();
@@ -130,7 +140,7 @@ export default function RankingPage() {
     const hasApiRank = vacancies.some(
       (v) => typeof v.match_score === "number"
     );
-    const mapped = vacancies.map((v) => {
+    const mapped = vacancies.sort((a, b) => b.match_score - a.match_score).map((v) => {
       const local = computeFitScore(cvText, v);
       const api = v.match_score;
       if (typeof api === "number") {
@@ -145,42 +155,57 @@ export default function RankingPage() {
     return mapped.sort((a, b) => b.fitScore - a.fitScore);
   }, [cv, vacancies]);
 
+  const avgFit = ranked.length
+    ? Math.round(ranked.reduce((acc, item) => acc + item.fitScore, 0) / ranked.length)
+    : 0;
+  const strongMatches = ranked.filter((item) => item.fitScore >= 75).length;
+  const weakMatches = ranked.filter((item) => item.fitScore < 50).length;
+
   return (
-    <section className="flex w-full flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-xl font-semibold text-zinc-950">
-          Matching
-        </h1>
-        <p className="max-w-2xl text-lg text-zinc-600">
-          When your CV is saved to the backend, vacancies are ordered by
-          OpenAI from best fit to weakest. Otherwise they stay in recency order
-          and scores use local keyword heuristics.
-        </p>
+    <section className="flex w-full flex-col gap-5 sticky top-0">
+      <header className="rounded-3xl border border-violet-100 bg-white p-6 shadow-sm">
+        <div className="flex flex-row gap-3">
+          <div className="flex flex-col gap-3">
+              <h1 className="text-4xl font-semibold text-zinc-900 sticky top-0 bg-white/80 backdrop-blur-sm">Matching for your profile</h1>
+              <p className="max-w-3xl text-lg text-zinc-600">
+              We intelligently rank vacancies based on how well they match your profile—so you see the best opportunities first.
+              <br/>Once your CV is added, our AI prioritizes roles from highest to lowest fit.
+              </p>
+          </div>
+          <Image src="/ranking-img.png" alt="Matching" width={450} height={500} className="rounded-xl overflow-hidden" />
+        </div>
+        <div className="mt-5 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-sm text-zinc-500">Vacancies ranked</p>
+            <p className="text-2xl font-semibold text-zinc-900">{ranked.length}</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-sm text-zinc-500">Average fit score</p>
+            <p className="text-2xl font-semibold text-zinc-900">{avgFit}%</p>
+          </div>
+          <div className="rounded-xl border border-zinc-200 bg-white p-3">
+            <p className="text-sm text-zinc-500">Strong / weak matches</p>
+            <p className="text-2xl font-semibold text-zinc-900">{strongMatches} / {weakMatches}</p>
+          </div>
+        </div>
       </header>
 
-      {!cv && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-lg text-amber-800">
-          No CV content found yet. The ranking will be much more accurate once
-          you add your CV on the My CV page.
-        </p>
-      )}
-
       {loadingVacancies && (
-        <p className="text-lg text-zinc-500">Loading vacancies…</p>
+        <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base text-zinc-500">Loading vacancies...</p>
       )}
 
       {vacanciesError && !loadingVacancies && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-lg text-red-800">
+        <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800">
           {vacanciesError}
         </p>
       )}
 
       {!loadingVacancies && !vacanciesError && ranked.length === 0 ? (
-        <p className="text-lg text-zinc-500">
+        <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base text-zinc-500">
           No vacancies to rank yet. Add a few on the Vacancies page first.
         </p>
       ) : !loadingVacancies && !vacanciesError ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {ranked.map((vacancy, index) => (
             <VacancyMatchingCard
               key={vacancy.id}
