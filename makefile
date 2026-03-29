@@ -9,7 +9,7 @@ venv:
 	$(PIP) install --upgrade pip
 
 install-backend-deps: venv
-	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker
+	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
 	cd ./backend/gateway && uv install
 	cd ./backend/cv-microservice && uv install
 	cd ./backend/rag-index-microservice && uv install
