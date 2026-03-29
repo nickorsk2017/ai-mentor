@@ -1,4 +1,4 @@
-.PHONY: venv install-backend-deps install-frontend-deps install-deps start-backend-microservices start-frontend
+.PHONY: venv system-deps install-backend-deps install-frontend-deps install-deps start-backend-microservices start-frontend
 
 VENV=.venv
 REPO_ROOT := $(shell cd "$(dir $(lastword $(MAKEFILE_LIST)))" && pwd)
@@ -9,6 +9,10 @@ UV=$(REPO_ROOT)/$(VENV)/bin/uv
 venv:
 	python3 -m venv $(VENV)
 	$(PIP) install --upgrade pip
+
+system-deps:
+	sudo apt-get update
+	sudo apt-get install -y python3-venv python3-full libpq-dev gcc python3-dev
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
