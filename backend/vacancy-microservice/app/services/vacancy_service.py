@@ -5,9 +5,9 @@ from uuid import UUID
 from fastapi import HTTPException
 from sqlalchemy import select
 
-from ..db.session import SessionLocal
-from ..models.vacancy import Vacancy as VacancyModel
-from ..schemas.vacancy import (
+from app.db.session import SessionLocal
+from _common.db.models.vacancy import VacancyModel
+from app.schemas.vacancy import (
     CreateVacancyRequest,
     UpdateVacancyRequest,
     DeleteVacancyResponse,

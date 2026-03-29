@@ -15,13 +15,13 @@ export function Modal({ open, title, description, children, onClose }: ModalProp
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+    <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-4 shadow-xl">
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-col gap-1">
-            <h2 className="text-sm font-semibold text-zinc-900">{title}</h2>
+            <h2 className="text-lg font-semibold text-zinc-900">{title}</h2>
             {description && (
-              <p className="text-[11px] text-zinc-600">{description}</p>
+              <p className="text-[18px] text-zinc-600">{description}</p>
             )}
           </div>
           <Button type="button" appearance="ghost" onClick={onClose} className="px-2 py-1">

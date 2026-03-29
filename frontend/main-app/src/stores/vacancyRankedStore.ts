@@ -17,7 +17,7 @@ type VacancyMatchedActions = {
 
 export type VacancyMatchedStore = VacancyMatchedState & VacancyMatchedActions;
 
-export const useVacancyMatchedStore = create<VacancyMatchedStore>((set) => ({
+export const useVacancyRankingStore = create<VacancyMatchedStore>((set) => ({
   vacancies: [],
   loadingVacancies: true,
   vacanciesError: null,

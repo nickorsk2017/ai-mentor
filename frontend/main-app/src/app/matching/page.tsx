@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useCvStore } from "@/stores/cvStore";
-import { useVacancyMatchedStore } from "@/stores/vacancyMatchedStore";
+import { useVacancyRankingStore } from "@/stores/vacancyRankedStore";
 import Image from "next/image";
 import { VacancyRankedCard } from "@/components/features/matching/VacancyRankedCard";
 
@@ -106,14 +106,14 @@ function computeFitScore(cvText: string, vacancy: Entity.Vacancy): Entity.Ranked
 
 export default function RankingPage() {
   const cv = useCvStore((s) => s.cv);
-  const vacancies = useVacancyMatchedStore((s) => s.vacancies);
-  const loadingVacancies = useVacancyMatchedStore((s) => s.loadingVacancies);
-  const vacanciesError = useVacancyMatchedStore((s) => s.vacanciesError);
-  const activeVacancyId = useVacancyMatchedStore((s) => s.activeVacancyId);
-  const fetchMatchedVacancies = useVacancyMatchedStore(
+  const vacancies = useVacancyRankingStore((s) => s.vacancies);
+  const loadingVacancies = useVacancyRankingStore((s) => s.loadingVacancies);
+  const vacanciesError = useVacancyRankingStore((s) => s.vacanciesError);
+  const activeVacancyId = useVacancyRankingStore((s) => s.activeVacancyId);
+  const fetchMatchedVacancies = useVacancyRankingStore(
     (s) => s.fetchMatchedVacancies
   );
-  const setActiveVacancyId = useVacancyMatchedStore(
+  const setActiveVacancyId = useVacancyRankingStore(
     (s) => s.setActiveVacancyId
   );
 
@@ -168,15 +168,27 @@ export default function RankingPage() {
         <div className="mt-5 grid gap-3 md:grid-cols-3">
           <div className="rounded-xl border border-zinc-200 bg-white p-3">
             <p className="text-sm text-zinc-500">Vacancies ranked</p>
-            <p className="text-2xl font-semibold text-zinc-900">{ranked.length}</p>
+            {loadingVacancies ? (
+              <div className="mt-1 h-8 w-16 animate-pulse rounded bg-zinc-200" />
+            ) : (
+              <p className="text-2xl font-semibold text-zinc-900">{ranked.length}</p>
+            )}
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-3">
             <p className="text-sm text-zinc-500">Average fit score</p>
-            <p className="text-2xl font-semibold text-zinc-900">{avgFit}%</p>
+            {loadingVacancies ? (
+              <div className="mt-1 h-8 w-24 animate-pulse rounded bg-zinc-200" />
+            ) : (
+              <p className="text-2xl font-semibold text-zinc-900">{avgFit}%</p>
+            )}
           </div>
           <div className="rounded-xl border border-zinc-200 bg-white p-3">
             <p className="text-sm text-zinc-500">Strong / weak matches</p>
-            <p className="text-2xl font-semibold text-zinc-900">{strongMatches} / {weakMatches}</p>
+            {loadingVacancies ? (
+              <div className="mt-1 h-8 w-28 animate-pulse rounded bg-zinc-200" />
+            ) : (
+              <p className="text-2xl font-semibold text-zinc-900">{strongMatches} / {weakMatches}</p>
+            )}
           </div>
         </div>
       </header>

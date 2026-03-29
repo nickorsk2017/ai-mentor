@@ -84,12 +84,11 @@ export const RichEditor = React.forwardRef<RichEditorHandle, RichEditorProps>(fu
       }`}
     >
       {/* Toolbar sticks to the top of this scrollable editor card */}
-      <div className={`sticky top-20.5 z-50 flex flex-wrap items-center gap-1 border-t border-b border-zinc-200 bg-white/90 px-3 py-2 backdrop-blur ${classToolbar}`}>
+      <div className={`sticky top-20.5 z-30 flex flex-wrap items-center gap-1 border-t border-b border-zinc-200 bg-white/90 px-3 py-2 backdrop-blur ${classToolbar}`}>
         <Button
           type="button"
           size={size}
-          appearance={editor.isActive("bold") ? "primary" : "secondary"}
-          disabled={!editor.can().chain().focus().toggleBold().run()}
+          appearance="secondary"
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
           Bold
@@ -97,8 +96,7 @@ export const RichEditor = React.forwardRef<RichEditorHandle, RichEditorProps>(fu
         <Button
           type="button"
           size={size}
-          appearance={editor.isActive("italic") ? "primary" : "secondary"}
-          disabled={!editor.can().chain().focus().toggleItalic().run()}
+          appearance="secondary"
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
           Italic
@@ -106,7 +104,7 @@ export const RichEditor = React.forwardRef<RichEditorHandle, RichEditorProps>(fu
         <Button
           type="button"
           size={size}
-          appearance={editor.isActive("bulletList") ? "primary" : "secondary"}
+          appearance="secondary"
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
           Bullets
@@ -114,7 +112,7 @@ export const RichEditor = React.forwardRef<RichEditorHandle, RichEditorProps>(fu
         <Button
           type="button"
           size={size}
-          appearance={editor.isActive("orderedList") ? "primary" : "secondary"}
+          appearance="secondary"
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         >
           Numbered
@@ -122,9 +120,7 @@ export const RichEditor = React.forwardRef<RichEditorHandle, RichEditorProps>(fu
         <Button
           type="button"
           size={size}
-          appearance={
-            editor.isActive("heading", { level: 2 }) ? "primary" : "secondary"
-          }
+          appearance="secondary"
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
         >
           H2

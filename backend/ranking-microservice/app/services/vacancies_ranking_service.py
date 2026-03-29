@@ -68,11 +68,12 @@ def _vacancy_block(v: VacancyFromIndex) -> str:
     skills = v.meta_data.get("skills", [])
 
     return (
-        f"- id: {v.id}\n"
+        f"- Vacancy id: {v.id}\n"
         f"- title: {v.title or '(untitled)'}\n"
         f"- company: {company}\n"
         f"- summary:\n{plain or '(empty)'}\n"
         f"- skills: {json.dumps(skills, indent=2)}\n"
+        f"==================================================\n"
     )
 
 

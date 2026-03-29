@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useCvStore } from "@/stores/cvStore";
-import { useVacancyMatchedStore } from "@/stores/vacancyMatchedStore";
+import { useVacancyRankingStore } from "@/stores/vacancyRankedStore";
 import Image from "next/image";
 import { VacancyRankedCard } from "@/components/features/matching/VacancyRankedCard";
 
@@ -106,14 +106,14 @@ function computeFitScore(cvText: string, vacancy: Entity.Vacancy): Entity.Ranked
 
 export default function MatchingPage() {
   const cv = useCvStore((s) => s.cv);
-  const vacancies = useVacancyMatchedStore((s) => s.vacancies);
-  const loadingVacancies = useVacancyMatchedStore((s) => s.loadingVacancies);
-  const vacanciesError = useVacancyMatchedStore((s) => s.vacanciesError);
-  const activeVacancyId = useVacancyMatchedStore((s) => s.activeVacancyId);
-  const fetchMatchedVacancies = useVacancyMatchedStore(
+  const vacancies = useVacancyRankingStore((s) => s.vacancies);
+  const loadingVacancies = useVacancyRankingStore((s) => s.loadingVacancies);
+  const vacanciesError = useVacancyRankingStore((s) => s.vacanciesError);
+  const activeVacancyId = useVacancyRankingStore((s) => s.activeVacancyId);
+  const fetchMatchedVacancies = useVacancyRankingStore(
     (s) => s.fetchMatchedVacancies
   );
-  const setActiveVacancyId = useVacancyMatchedStore(
+  const setActiveVacancyId = useVacancyRankingStore(
     (s) => s.setActiveVacancyId
   );
 

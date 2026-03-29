@@ -229,7 +229,7 @@ export function VacancyCard({
           </div>      
         </header>
 
-        <div className={cx("flex flex-col gap-2 p-4 pt-0 border !border-t-0 !border-b-0 bg-white", isActive ? "border-violet-500 " : "static border-gray-300")}>
+        <div className={cx("flex flex-col gap-2 px-4  border !border-t-0 !border-b-0 bg-white", isActive ? "border-violet-500 " : "static border-gray-300")}>
           {isActive && <RichEditor
             size="small"
             ref={descriptionRef}

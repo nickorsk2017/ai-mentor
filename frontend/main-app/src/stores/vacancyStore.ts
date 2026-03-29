@@ -12,7 +12,6 @@ type VacancyActions = {
   deleteVacancy: (id: string) => void;
   updateVacancy: (id: string, patch: Partial<Entity.Vacancy>) => void;
   updateVacancyStages: (id: string, stages: Entity.VacancyStage[]) => void;
-  setVacancyPlannedStageCount: (id: string, count: number) => void;
   fetchVacancies: () => Promise<void>;
 };
 
@@ -22,7 +21,7 @@ export const useVacancyStore = create<VacancyStore>((set) => ({
   vacancies: [],
 
   addVacancy: (vacancy) =>
-    set((s) => ({ vacancies: [...s.vacancies, vacancy] })),
+    set((state) => ({ vacancies: [...state.vacancies, vacancy] })),
 
   fetchVacancies: async () => {
     const data = await getVacanciesOnBackend();
@@ -30,28 +29,22 @@ export const useVacancyStore = create<VacancyStore>((set) => ({
   },
 
   deleteVacancy: (id) =>
-    set((s) => ({
-      vacancies: s.vacancies.filter((v) => v.id !== id),
+    set((state) => ({
+      vacancies: state.vacancies.filter((vacancy) => vacancy.id !== id),
     })),
 
   updateVacancy: (id, patch) =>
-    set((s) => ({
-      vacancies: s.vacancies.map((v) =>
-        v.id === id ? { ...v, ...patch } : v
+    set((state) => ({
+      vacancies: state.vacancies.map((vacancy) =>
+        vacancy.id === id ? { ...vacancy, ...patch } : vacancy
       ),
     })),
 
   updateVacancyStages: (id, stages) =>
     set((s) => ({
-      vacancies: s.vacancies.map((v) =>
-        v.id === id ? { ...v, stages } : v
+      vacancies: s.vacancies.map((vacancy) =>
+        vacancy.id === id ? { ...vacancy, stages } : vacancy
       ),
     })),
 
-  setVacancyPlannedStageCount: (id, count) =>
-    set((s) => ({
-      vacancies: s.vacancies.map((v) =>
-        v.id === id ? { ...v, planned_stages: count } : v
-      ),
-    })),
 }));
