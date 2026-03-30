@@ -47,5 +47,8 @@ start-backend-microservices:
 	(cd backend/vacancy-microservice && $(UV) run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8005) & \
 	wait
 
+stop-backend-microservices:
+	pkill -f gunicorn || true
+
 start-frontend:
 	cd ./frontend/main-app && pnpm build && pm2 start npm --name "nextjs-ai-mentor-app" -- run start
