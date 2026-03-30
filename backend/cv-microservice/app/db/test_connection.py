@@ -2,15 +2,23 @@ from __future__ import annotations
 
 import asyncio
 
-import asyncpg
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
 
 from app.config import settings
 
 
+ASYNC_DB_URL = settings.database_url
+
+
 async def test() -> None:
-    conn = await asyncpg.connect(settings.database_url)
-    print("connected")
-    await conn.close()
+    engine = create_async_engine(ASYNC_DB_URL, echo=True)
+
+    async with engine.connect() as conn:
+        result = await conn.execute(text("SELECT 1"))
+        print("connected:", result.scalar())
+
+    await engine.dispose()
 
 
 def main() -> int:
