@@ -19,7 +19,6 @@ system-deps:
 	sudo pip install --ignore-installed --break-system-packages uvicorn-worker
 	sudo apt install postgresql postgresql-contrib -y
 	curl -LsSf https://astral.sh/uv/install.sh | sh
-	source ~/.bashrc
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
@@ -33,8 +32,19 @@ install-backend-deps: venv
 install-frontend-deps:
 	sudo apt-get update
 	sudo apt-get install -y ca-certificates curl gnupg
-	curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-	sudo apt-get install -y nodejs
+
+	# Install NVM (Node Version Manager)
+	curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
+
+	# Load NVM into current shell session
+	export NVM_DIR="$([ -z "$$XDG_CONFIG_HOME" ] && printf %s "$$HOME/.nvm" || printf %s "$$XDG_CONFIG_HOME/nvm")"
+	[ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh"
+
+	# Install latest LTS Node.js using NVM
+	nvm install --lts
+	nvm use --lts
+	nvm alias default lts/*
+
 	sudo npm install -g pnpm@latest
 	sudo npm install -g pm2
 	pm2 startup
