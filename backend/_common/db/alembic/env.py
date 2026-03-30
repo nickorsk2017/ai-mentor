@@ -9,16 +9,16 @@ from alembic import context
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy import engine_from_config, pool
 
-# Project root (parent of alembic/)
-_ROOT = Path(__file__).resolve().parents[1]
-if str(_ROOT.parent) not in sys.path:
-    sys.path.insert(0, str(_ROOT.parent))
+# Backend root (needed for `_common.*` imports)
+_BACKEND_ROOT = Path(__file__).resolve().parents[3]
+if str(_BACKEND_ROOT) not in sys.path:
+    sys.path.insert(0, str(_BACKEND_ROOT))
 
-from env_paths import COMMON_ENV_FILE  # noqa: E402
+from _common.env_paths import COMMON_ENV_FILE  # noqa: E402
 
-from db_models_and_migrations.base import Base  # noqa: E402
-from db_models_and_migrations.models import cv as _cv  # noqa: F401, E402
-from db_models_and_migrations.models import vacancy as _vacancy  # noqa: F401, E402
+from _common.db.models.base import BaseModel  # noqa: E402
+from _common.db.models import cv as _cv  # noqa: F401, E402
+from _common.db.models import vacancy as _vacancy  # noqa: F401, E402
 
 
 class _Settings(BaseSettings):
@@ -35,7 +35,7 @@ config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = Base.metadata
+target_metadata = BaseModel.metadata
 
 
 def get_sync_database_url() -> str:
