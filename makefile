@@ -14,6 +14,7 @@ system-deps:
 	sudo apt-get update
 	sudo apt-get install -y python3-venv python3-full libpq-dev gcc python3-dev
 	sudo apt install -y gunicorn
+	sudo apt install -y python3-uvicorn
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
