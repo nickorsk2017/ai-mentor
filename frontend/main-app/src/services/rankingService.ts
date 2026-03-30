@@ -52,7 +52,7 @@ export async function deleteVacancyFromMatchingIndex(
   vacancyId: string
 ): Promise<void> {
   const res = await fetch(
-    `${API_URL}/v1/vacancies/index/${encodeURIComponent(vacancyId)}`,
+    `${API_URL}/vacancies/index/${encodeURIComponent(vacancyId)}`,
     {
       method: "DELETE",
     }
