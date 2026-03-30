@@ -57,8 +57,8 @@ Key shared variables include:
 
 Each microservice has its own README with folder structure and run instructions:
 
-- `backend/gateway/README.md`
-- `backend/cv-microservice/README.md`
-- `backend/rag-index-microservice/README.md`
-- `backend/ranking-microservice/README.md`
-- `backend/vacancy-microservice/README.md`
+- [`backend/gateway/README.md`](gateway/README.md)
+- [`backend/cv-microservice/README.md`](cv-microservice/README.md)
+- [`backend/rag-index-microservice/README.md`](rag-index-microservice/README.md)
+- [`backend/ranking-microservice/README.md`](ranking-microservice/README.md)
+- [`backend/vacancy-microservice/README.md`](vacancy-microservice/README.md)
