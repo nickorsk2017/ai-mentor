@@ -50,5 +50,8 @@ start-backend-microservices:
 stop-backend-microservices:
 	pkill -f gunicorn || true
 
+list-backend-processes:
+	ps aux | grep gunicorn | grep -v grep
+
 start-frontend:
 	cd ./frontend/main-app && pnpm build && pm2 start npm --name "nextjs-ai-mentor-app" -- run start
