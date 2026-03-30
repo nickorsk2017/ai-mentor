@@ -16,6 +16,7 @@ system-deps:
 	sudo apt-get install -y supervisor
 	sudo apt install -y gunicorn  python3-uvicorn
 	sudo pip install --break-system-packages uvicorn-worker
+	sudo apt install postgresql postgresql-contrib -y
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
