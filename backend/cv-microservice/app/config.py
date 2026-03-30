@@ -13,12 +13,9 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
-    
+
     app_name: str = "cv-microservice"
     port: int = 8002
     database_url: str;
-    
-   
-
 
 settings = Settings()
