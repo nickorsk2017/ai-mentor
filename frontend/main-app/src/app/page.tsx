@@ -58,10 +58,8 @@ export default function Home() {
             Finding the right job is overwhelming.
           </p>
           <p className="text-xl leading-relaxed text-zinc-600">
-            Job searching shouldn’t feel like guesswork.
-
-            You spend hours scrolling through irrelevant vacancies, trying to figure out what actually fits.
-            Most platforms rely on basic keyword matching—ignoring your real experience, seniority, and career direction.
+            Job searching shouldn’t feel like guesswork.<br /><br />
+            Don't waste hours on irrelevant roles—most platforms rely on keywords, ignoring your real experience and career direction.
           </p>
         </div>
         <div className="flex flex-col gap-5 rounded-3xl border border-violet-200/80 bg-gradient-to-br from-violet-50/90 to-white p-6 shadow-sm">
