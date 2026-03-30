@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     app_name: str = "cv-microservice"
     port: int = 8002
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ai_hr"
+    
+    print(database_url)
+    print("--------------------------------")
+    print("--------------------------------")
 
 
 settings = Settings()
