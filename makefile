@@ -18,11 +18,11 @@ system-deps:
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
-	cd ./backend/gateway && $(UV) sync
-	cd ./backend/cv-microservice && $(UV) sync
-	cd ./backend/rag-index-microservice && $(UV) sync
-	cd ./backend/ranking-microservice && $(UV) sync
-	cd ./backend/vacancy-microservice && $(UV) sync
+	cd ./backend/gateway && $(UV) sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/cv-microservice && $(UV) sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/rag-index-microservice && $(UV) sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/ranking-microservice && $(UV) sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/vacancy-microservice && $(UV) sync && uv add gunicorn "uvicorn[standard]"
 
 # Ubuntu: install Node.js (NodeSource LTS) and latest pnpm, then project deps. No OS detection.
 install-frontend-deps:
@@ -40,11 +40,11 @@ install-deps:
 	$(MAKE) install-frontend-deps
 
 start-backend-microservices:
-	(cd backend/gateway && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8001) & \
-	(cd backend/cv-microservice && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8002) & \
-	(cd backend/rag-index-microservice && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8003) & \
-	(cd backend/ranking-microservice && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8004) & \
-	(cd backend/vacancy-microservice && gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8005) & \
+	(cd backend/gateway && uv run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8001) & \
+	(cd backend/cv-microservice && uv run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8002) & \
+	(cd backend/rag-index-microservice && uv run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8003) & \
+	(cd backend/ranking-microservice && uv run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8004) & \
+	(cd backend/vacancy-microservice && uv run gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8005) & \
 	wait
 
 start-frontend:
