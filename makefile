@@ -12,7 +12,8 @@ venv:
 
 system-deps:
 	sudo apt-get update
-	sudo apt-get install -y python3-venv python3-full libpq-dev gcc python3-dev
+	sudo apt-get install -y python3-venv python3-full libpq-dev gcc python3-dev 
+	sudo apt-get install -y supervisor
 	sudo apt install -y gunicorn  python3-uvicorn
 	sudo pip install --break-system-packages uvicorn-worker
 
