@@ -33,16 +33,15 @@ install-frontend-deps:
 	sudo apt-get update
 	sudo apt-get install -y ca-certificates curl gnupg
 
-	# Install NVM
-	curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash
-
-	# Load NVM into current shell
-	export NVM_DIR="$$([ -z "$$XDG_CONFIG_HOME" ] && printf %s "$$HOME/.nvm" || printf %s "$$XDG_CONFIG_HOME/nvm")"
-	[ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh"
-
-	# Install latest LTS Node.js
-	nvm install --lts
-	nvm use --lts
+	# Install NVM and Node in one shell block
+	bash -c '\
+	curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.6/install.sh | bash; \
+	export NVM_DIR="$$([ -z "$$XDG_CONFIG_HOME" ] && printf %s "$$HOME/.nvm" || printf %s "$$XDG_CONFIG_HOME/nvm")"; \
+	[ -s "$$NVM_DIR/nvm.sh" ] && \. "$$NVM_DIR/nvm.sh"; \
+	nvm install --lts; \
+	nvm use --lts; \
+	nvm alias default lts/*; \
+	npm install -g pnpm@latest pm2; \
 	nvm alias default lts/*
 
 	sudo npm install -g pnpm@latest
