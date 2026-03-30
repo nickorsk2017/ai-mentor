@@ -15,6 +15,7 @@ system-deps:
 	sudo apt-get install -y python3-venv python3-full libpq-dev gcc python3-dev 
 	sudo apt-get install -y supervisor
 	sudo apt install -y gunicorn  python3-uvicorn
+	sudo apt install python3-pip
 	sudo pip install --break-system-packages uvicorn-worker
 	sudo apt install postgresql postgresql-contrib -y
 	curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -36,6 +37,7 @@ install-frontend-deps:
 	sudo apt-get install -y nodejs
 	sudo npm install -g pnpm@latest
 	sudo npm install -g pm2
+	pm2 startup
 	cd ./frontend/main-app && pnpm install
 
 install-deps:
@@ -58,4 +60,5 @@ list-backend-processes:
 	ps aux | grep gunicorn | grep -v grep
 
 start-frontend:
-	cd ./frontend/main-app && pnpm build && pm2 start npm --name "nextjs-ai-mentor-app" -- run start
+	cd ./frontend/main-app && pnpm build && pm2 start pnpm --name "nextjs-ai-mentor-app" -- run start
+	pm2 save

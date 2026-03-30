@@ -1,0 +1,66 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Gateway service",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd backend/gateway && uv run gateway"
+    },
+    {
+      "name": "CV service",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd backend/cv-microservice && uv run cv-microservice"
+    },
+    {
+      "name": "RAG index service",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd backend/rag-index-microservice && uv run rag-index-microservice"
+    },
+    {
+      "name": "Ranking service",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd backend/ranking-microservice && uv run ranking-microservice"
+    },
+    {
+      "name": "Vacancy service",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd backend/vacancy-microservice && uv run vacancy-microservice"
+    },
+    {
+      "name": "Frontend (Next.js dev)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "cd frontend/main-app && pnpm dev"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "All backend services",
+      "configurations": [
+        "Gateway service",
+        "CV service",
+        "RAG index service",
+        "Ranking service",
+        "Vacancy service"
+      ],
+      "stopAll": true
+    },
+    {
+      "name": "Backend + Frontend",
+      "configurations": [
+        "Gateway service",
+        "CV service",
+        "RAG index service",
+        "Ranking service",
+        "Vacancy service",
+        "Frontend (Next.js dev)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
