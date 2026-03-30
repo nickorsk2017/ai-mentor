@@ -8,6 +8,9 @@ from app.config import settings
 
 def _normalize_database_url(raw: str) -> str:
     url = make_url(raw)
+    print(url)
+    print("--------------------------------")
+    print("--------------------------------")
 
     if url.drivername in {"postgresql", "postgres"}:
         url = url.set(drivername="postgresql+asyncpg")
@@ -22,5 +25,5 @@ def _normalize_database_url(raw: str) -> str:
     return str(url)
 
 
-engine = create_async_engine(settings.database_url, echo=False)
+engine = create_async_engine(_normalize_database_url(settings.database_url), echo=False)
 SessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, class_=AsyncSession)
