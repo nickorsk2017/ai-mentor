@@ -70,5 +70,7 @@ list-backend-processes:
 	ps aux | grep gunicorn | grep -v grep
 
 start-frontend:
-	cd ./frontend/main-app && pnpm build && pm2 start pnpm --name "nextjs-ai-mentor-app" -- run start
+	cd ./frontend/main-app && pnpm build
+	pm2 delete nextjs-ai-mentor-app || true
+	pm2 start pnpm --name "nextjs-ai-mentor-app" -- run start
 	pm2 save
