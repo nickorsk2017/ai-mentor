@@ -114,22 +114,12 @@ logs:
 
 install-rabbitmq:
 	sudo apt-get update
-	sudo apt-get install -y curl gnupg apt-transport-https
-
-	# Erlang
-	curl -1sLf 'https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc' | sudo gpg --dearmor -o /usr/share/keyrings/erlang.gpg
-	echo "deb [signed-by=/usr/share/keyrings/erlang.gpg] https://packages.erlang-solutions.com/ubuntu $$(lsb_release -cs) contrib" | sudo tee /etc/apt/sources.list.d/erlang.list
-	sudo apt-get update
-	sudo apt-get install -y erlang
-
-	# RabbitMQ
 	sudo apt-get install -y rabbitmq-server
 
-	# enable startup
+	sudo systemctl daemon-reload
 	sudo systemctl enable rabbitmq-server
 	sudo systemctl start rabbitmq-server
 
-	# management UI
 	sudo rabbitmq-plugins enable rabbitmq_management
 
 start-rabbitmq:
