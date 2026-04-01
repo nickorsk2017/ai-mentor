@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useCvStore } from "@/stores/cvStore";
+import { useEffect } from "react";
 import { useVacancyRankingStore } from "@/stores/vacancyRankedStore";
 import Image from "next/image";
 import { VacancyRankedCard } from "@/components/features/ranking/VacancyRankedCard";
