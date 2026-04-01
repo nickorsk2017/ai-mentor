@@ -59,8 +59,6 @@ export function VacancyRankedCard({
     </div>
   }, [vacancy.aligned_skills, vacancy.not_aligned_skills]);
 
-  console.log(vacancy);
-
   return (
     <article
       className={`flex cursor-pointer flex-col gap-4 rounded-2xl border bg-white p-4 shadow-sm transition hover:scale-101 ${
