@@ -20,6 +20,7 @@ from _common.schemas.vacancy_index import (
 )
 
 from app.services.proxy_service import forward_json
+from app.services.rabbitmq_publisher import publish_cv_index
 
 router = APIRouter()
 
@@ -38,8 +39,8 @@ async def upsert_cv(payload: CvIndexPayload) -> Any:
         json_body=payload.model_dump(mode="json"),
     )
 
-    # add cv to index
-    await index_cv(payload);
+    # add CV to index asynchronously via RabbitMQ broker
+    await publish_cv_index(payload)
 
     return cv_response
 

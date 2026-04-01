@@ -22,7 +22,11 @@ class Settings(BaseSettings):
     ranking_microservice_url: str = "http://localhost:8004"
     vacancy_microservice_url: str = "http://localhost:8005"
 
- 
+    # RabbitMQ (for async indexing/broadcast)
+    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rabbitmq_exchange: str = "ai_hr_events"
+    rabbitmq_cv_index_routing_key: str = "cv.index"
+
     request_timeout_seconds: float = 30.0
 
 
