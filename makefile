@@ -22,11 +22,11 @@ system-deps:
 
 install-backend-deps: venv
 	$(PIP) install "uvicorn[standard]" gunicorn uvicorn-worker uv
-	cd ./backend/gateway && $(UV) sync
-	cd ./backend/cv-microservice && $(UV) sync
-	cd ./backend/rag-index-microservice && $(UV) sync
-	cd ./backend/ranking-microservice && $(UV) sync
-	cd ./backend/vacancy-microservice && $(UV) sync
+	cd ./backend/gateway && uv sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/cv-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/rag-index-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/ranking-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
+	cd ./backend/vacancy-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
 
 
 # -----------------------------
