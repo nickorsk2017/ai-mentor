@@ -28,6 +28,7 @@ install-backend-deps: venv
 	cd ./backend/ranking-microservice && $(UV) sync
 	cd ./backend/vacancy-microservice && $(UV) sync
 
+
 # -----------------------------
 # Supervisor configs
 # -----------------------------
@@ -130,3 +131,42 @@ install-rabbitmq:
 
 	# management UI
 	sudo rabbitmq-plugins enable rabbitmq_management
+
+start-rabbitmq:
+	sudo systemctl start rabbitmq-server
+
+stop-rabbitmq:
+	sudo systemctl stop rabbitmq-server
+
+restart-rabbitmq:
+	sudo systemctl restart rabbitmq-server
+
+
+# -----------------------------
+# Frontend configs
+# -----------------------------
+
+FRONTEND_DIR=$(REPO_ROOT)/frontend/main-app
+FRONTEND_NAME=ai-mentor-frontend
+
+install-frontend:
+	curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+	sudo apt-get install -y nodejs
+	cd $(FRONTEND_DIR) && npm install
+	cd $(FRONTEND_DIR) && npm run build
+
+start-frontend:
+	cd $(FRONTEND_DIR) && pm2 start npm --name "$(FRONTEND_NAME)" -- start
+	pm2 save
+
+stop-frontend:
+	pm2 stop $(FRONTEND_NAME)
+
+restart-frontend:
+	pm2 restart $(FRONTEND_NAME)
+
+logs-frontend:
+	pm2 logs $(FRONTEND_NAME)
+
+status-frontend:
+	pm2 status
