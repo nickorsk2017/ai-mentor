@@ -64,7 +64,7 @@ create-supervisor-configs:
 
 	echo "[program:ranking]" | sudo tee $(SUPERVISOR_DIR)/ranking.conf
 	echo "directory=$(REPO_ROOT)/backend/ranking-microservice" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
-	echo "command=$(REPO_ROOT)/backend/ranking-microservice/.venv/bin/python -m gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 2 -b 0.0.0.0:8004 --timeout 120 --graceful-timeout 30" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
+	echo "command=$(REPO_ROOT)/backend/ranking-microservice/.venv/bin/python -m gunicorn app.main:app -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:8004 --timeout 120 --graceful-timeout 30" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
 	echo "autostart=true" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
 	echo "autorestart=true" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
 	echo "stdout_logfile=/var/log/ranking.out.log" | sudo tee -a $(SUPERVISOR_DIR)/ranking.conf
