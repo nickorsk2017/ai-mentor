@@ -2,14 +2,13 @@
 
 ## What This Project Is
 
-AI HR Mentor is a full-stack app for:
+AI HR Mentor is an end-to-end AI career mentor for job seekers that turns a raw CV into a ranked list of best-fit vacancies and concrete upskilling advice.
 
-- editing and storing CVs
-- managing vacancies and interview stages
-- indexing CV/vacancy data in Pinecone
-- ranking vacancies against a user CV
+It is built as a real-world, production-style AI system: multi-service FastAPI backend, RAG, and a polished Next.js frontend.
 
 The project is split into `frontend/` (Next.js UI) and `backend/` (FastAPI microservices).
+
+Live demo: https://match-vacancy.com/
 
 ## Project Structure
 
@@ -27,6 +26,22 @@ ai-hr-agent/
 │   └── README.md                 # Backend overview
 └── makefile                      # Top-level install/run helpers
 ```
+
+## System Design Overview
+
+- **Frontend (`frontend/main-app`)**: Next.js app that exposes the AI career mentor UI and talks only to the gateway over HTTP.
+- **API Gateway (`backend/gateway`)**: Single entrypoint for the frontend; proxies REST calls to the underlying microservices and publishes indexing events to RabbitMQ.
+- **Core microservices**:
+  - `cv-microservice`: stores CVs in PostgreSQL and exposes CRUD + simple queries.
+  - `vacancy-microservice`: manages vacancies and interview stages in PostgreSQL.
+  - `rag-index-microservice`: extracts structured data from CVs/vacancies, builds embeddings, and writes to Pinecone.
+  - `ranking-microservice`: pulls the indexed CV + vacancies from Pinecone, runs LLM-based ranking, and returns ordered matches plus aligned/missing skills.
+- **Shared layer (`backend/_common`)**: centralizes Pydantic schemas, SQLAlchemy models, Alembic migrations, and the shared `.env` config used by all backend services.
+- **Infrastructure**:
+  - **PostgreSQL** for transactional storage (CVs, vacancies, stages).
+  - **RabbitMQ** as a broker for async indexing events.
+  - **Pinecone** as the vector store for CV and vacancy embeddings.
+  - **Docker / docker-compose** to run all services, DB, and RabbitMQ locally as a single stack.
 
 ## Main Docs
 
