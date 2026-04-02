@@ -8,15 +8,10 @@ from fastapi import APIRouter, Body, Query
 from app.config import settings
 from _common.schemas.vacancy_index import CvIndexPayload
 from _common.schemas.vacancy import (
-    CreateVacancyRequest,
     UpdateVacancyRequest,
-    DeleteVacancyResponse,
-    VacancyResponse,
-    VacanciesResponse,
 )
 from _common.schemas.vacancy_index import (
     VacancyIndexPayload,
-    VacancyIndexResponse,
 )
 
 from app.services.proxy_service import forward_json

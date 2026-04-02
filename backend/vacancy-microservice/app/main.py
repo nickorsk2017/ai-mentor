@@ -52,6 +52,6 @@ def main() -> int:
     """
     import uvicorn
 
-    uvicorn.run("app.main:app", host="0.0.0.0", port=settings.port)
+    uvicorn.run("app.main:app", host="localhost", port=settings.port)
     return 0
 

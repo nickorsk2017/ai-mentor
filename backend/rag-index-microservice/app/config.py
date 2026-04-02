@@ -25,5 +25,13 @@ class Settings(BaseSettings):
     pinecone_api_key: str = ""
     pinecone_index: str = ""
 
+    # RabbitMQ (for async indexing from gateway events)
+    rabbitmq_url: str = "amqp://guest:guest@localhost:5672/"
+    rabbitmq_exchange: str = "ai-mentor_events"
+    rabbitmq_cv_index_routing_key: str = "cv.index"
+    rabbitmq_vacancy_index_routing_key: str = "vacancy.index"
+    rabbitmq_cv_index_queue: str = "rag.cv.index.queue"
+    rabbitmq_vacancy_index_queue: str = "rag.vacancy.index.queue"
+
 
 settings = Settings()

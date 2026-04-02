@@ -40,7 +40,6 @@ async def update_vacancy_endpoint(
 
 @router.get("/vacancies", response_model=VacanciesResponse)
 async def get_vacancy_endpoint(user_id: UUID) -> VacanciesResponse:
-    print(f"Getting vacancies for user {user_id}")
     return await get_vacancies(user_id)
 
 

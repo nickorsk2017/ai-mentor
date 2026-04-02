@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
+
 from dataclasses import dataclass, field
 from uuid import UUID
 from typing import Any
+from fastapi import HTTPException
 from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_groq import ChatGroq
 
@@ -28,6 +31,8 @@ from app.services.vector_store_service import (
     get_index_vacancies_from_pinecone,
     unknown_listing_created_at,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -101,38 +106,42 @@ def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_ind
     if not settings.groq_api_key:
         raise RuntimeError("GROQ_API_KEY is not set")
 
-    llm = ChatGroq(
-        model=settings.groq_chat_model,
-        api_key=settings.groq_api_key,
-        temperature=0,
-        response_format={"type": "json_object"},
-    )
+    try:
+        llm = ChatGroq(
+            model=settings.groq_chat_model,
+            api_key=settings.groq_api_key,
+            temperature=0,
+             model_kwargs={
+                "response_format": {"type": "json_object"},
+            }
+        )
 
-    blocks = "\n".join(_vacancy_block(vacancy_from_index, cv_skills) for vacancy_from_index in vacancies_from_index)
+        blocks = "\n".join(_vacancy_block(vacancy_from_index, cv_skills) for vacancy_from_index in vacancies_from_index)
 
-    cv_plane_text = strip_html_to_text(cv_text)
+        cv_plane_text = strip_html_to_text(cv_text)
 
-    cv_and_vacancies_list_prompt = CV_VACANCY_RANK_USER_TEMPLATE.format(
-        cv_text=cv_plane_text,
-        vacancy_blocks=blocks,
-    )
+        cv_and_vacancies_list_prompt = CV_VACANCY_RANK_USER_TEMPLATE.format(
+            cv_text=cv_plane_text,
+            vacancy_blocks=blocks,
+        )
 
-    print('--------------------------------')
-    print(VACANCIES_RANK_PROMPT)
-    print(cv_and_vacancies_list_prompt)
-    print('--------------------------------')
+        raw = llm.invoke(
+            [
+                SystemMessage(content=VACANCIES_RANK_PROMPT),
+                SystemMessage(content=SENIORITY_RULES_PROMPT),
+                SystemMessage(content=ADVICE_RULES_PROMPT),
+                HumanMessage(content=cv_and_vacancies_list_prompt),
+            ]
+        )
 
-    raw = llm.invoke(
-        [
-            SystemMessage(content=VACANCIES_RANK_PROMPT),
-            SystemMessage(content=SENIORITY_RULES_PROMPT),
-            SystemMessage(content=ADVICE_RULES_PROMPT),
-            HumanMessage(content=cv_and_vacancies_list_prompt),
-        ]
-    )
-
-    data = json.loads(raw.content)
-    return RankingResponse.model_validate(data)
+        data = json.loads(raw.content)
+        return RankingResponse.model_validate(data)
+    except Exception as e:
+        logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Upstream error while indexing: {type(e).__name__}: {e}",
+        ) from e
 
 
 def _opt_score(v: int | None) -> int | None:
@@ -169,6 +178,7 @@ def _merge_ranking(
 
     cv_skill_lowercase = {s.lower() for s in cv_skills}
 
+
     for item in ranking_data_llm.rankings:
         key = item.vacancy_id
         if key and key in by_id and key not in seen:
@@ -183,10 +193,13 @@ def _merge_ranking(
             vacancy_skills_raw = (vacancy.meta_data or {}).get("skills")
             vacancy_skills = _normalize_skills_from_metadata(vacancy_skills_raw)
 
-            aligned = sorted({s for s in vacancy_skills if s.lower() in cv_skill_lowercase})
-            not_aligned = sorted({s for s in vacancy_skills if s.lower() not in cv_skill_lowercase})
+            aligned = sorted({s for s in vacancy_skills if s.lower() in cv_skill_lowercase}) or []
+            not_aligned = sorted({s for s in vacancy_skills if s.lower() not in cv_skill_lowercase}) or []
+    
+            len_aligned = len(aligned)
+            len_not_aligned = len(not_aligned)
 
-            tech_score = round((len(aligned) / (len(aligned) + len(not_aligned))) * 100)
+            tech_score =  round((len_aligned / (len_aligned + len_not_aligned)) * 100) if len_aligned and len_not_aligned else 0
             match_score = round((tech_score + seniority_score + other_score) / (3 if other_score else 2))
 
             result.append(
@@ -216,11 +229,11 @@ async def rank_vacancies_by_cv(
     if not vacancies_from_index:
         return []
 
-    result_llm = await asyncio.to_thread(_get_ranking_data_llm, cv_text, cv_skills, vacancies_from_index)
-    if result_llm is None:
+    ranking_data_llm = await asyncio.to_thread(_get_ranking_data_llm, cv_text, cv_skills, vacancies_from_index)
+    if ranking_data_llm is None:
         raise RuntimeError("Ranking returned empty result")
 
-    merged = _merge_ranking(vacancies_from_index, result_llm, cv_skills)
+    merged = _merge_ranking(vacancies_from_index, ranking_data_llm, cv_skills)
     return merged
 
 

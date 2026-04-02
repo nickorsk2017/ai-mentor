@@ -15,8 +15,7 @@ async def test() -> None:
     engine = create_async_engine(ASYNC_DB_URL, echo=True)
 
     async with engine.connect() as conn:
-        result = await conn.execute(text("SELECT 1"))
-        print("connected:", result.scalar())
+        await conn.execute(text("SELECT 1"))
 
     await engine.dispose()
 
