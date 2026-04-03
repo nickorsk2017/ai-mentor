@@ -27,7 +27,7 @@ async def extract_cv_data_for_index(cv_html: str) -> CvExtractionRecord:
     """
     Use OpenAI GPT-4o-mini to derive summary, skills, and years_expereance from raw CV text.
     """
-    plain_cv = strip_html_to_text(cv_html)
+    plain_cv = strip_html_to_text(cv_html).lower()
 
 
     llm = _get_llm_client()

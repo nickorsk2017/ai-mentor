@@ -41,6 +41,34 @@ SUMMARY SHOULD BE 8-15 SENTENCES.
 - BENEFITS SHOULD BE ARRAY OF STRINGS.
 - COMPANY_TYPE SHOULD BE IN FORMAT "startup" OR "enterprise" OR "government" OR "non-profit" OR "outsourcing" OR "other".
 - YEARS_OF_EXPERIENCE SHOULD BE IN FORMAT "0-1" OR "1-3" OR "3-5" OR "5-10" OR "10+".
+- INCLUDE ONLY CORE TECHNOLOGIES, FRAMEWORKS, TOOLS, DATABASES, CLOUD SERVICES, LANGUAGES.
+- INCLUDE ALL SKILLS TO THE SKILLS FIELD:
+  - technologies (e.g. React, Angular, Vue, Node, PostgreSQL, MongoDB, etc.)
+  - platforms (e.g. AWS, Azure, GCP, Node etc.)
+  - programming languages (e.g. Python, JavaScript, TypeScript, etc.)
+  - tools for job (e.g. Jira, Notion, Slack, etc.)
+  - frameworks (e.g. React, Angular, Vue, etc.)
+  - libraries (e.g. Lodash, Moment, etc.)
+  - techniques (e.g. SOLID principles, Design Patterns, etc.)
+  - approaches (e.g. Agile, Scrum, MVP, Product Market Fit etc.)
+  - methodologies (e.g. Waterfall, Agile, etc.)
+  - processes (e.g. CI/CD, etc.)
+  - extract backend runtimes
+- SKILLS SHOULD BE NORMALIZED, RULES:
+  - Socket.io -> WebSocket
+  - WebSockets → WebSocket
+  - REST API → REST
+  - GraphQL API → GraphQL
+  - Node → Node.js
+  - Postgres → PostgreSQL
+  - Mongo → MongoDB
+  - JS → JavaScript
+  - TS → TypeScript
+  - Retrieval Augmented Generation → RAG
+  - Large Language Model → LLM
+  - Cursor AI → Cursor
+  - AI-powered coding tools (or same meaning) → AI tools
+- SKILLS SHOULD BE DEDUPLICATED TO REMOVE SIMILAR ITEMS (e.g. "JS" → "JavaScript")
 """
 
 EXTRACT_CV_FOR_INDEX_FIELDS = """
@@ -53,7 +81,7 @@ EXTRACT_CV_FOR_INDEX_FIELDS = """
 
 Extraction rules:
 
-1. summary (REQUIRED)
+1. summary field (REQUIRED)
 - 4-6 sentences
 - Written in third person or neutral tone (no "I")
 - Must include:
@@ -65,14 +93,51 @@ Extraction rules:
 - Avoid filler words, marketing language, and repetition
 - sentense should be short and concise
 
-2. skills (REQUIRED)
-- Array of unique strings
-- Include technologies, frameworks, tools, databases, cloud, languages
-- Deduplicate similar items (e.g. "JS" → "JavaScript")
-- Use Title Case where appropriate (e.g. "React", "Node.js", "PostgreSQL")
-- Do NOT include soft skills
+2. skills field (REQUIRED)
+- INCLUDE ALL SKILLS TO THE SKILLS FIELD, CHECK ALL FOLLOWING CATEGORIES:
+  - databases (e.g. postgresql, mongodb, etc.)
+  - platforms (e.g. AWS, Azure, GCP, Node etc.)
+  - programming languages (e.g. python, javascript, typescript, etc.)
+  - tools for job (e.g. jira, notion, slack, etc.)
+  - frameworks (e.g. react, angular, vue, etc.)
+  - libraries (e.g. Lodash, Moment, React Query, Zustand, etc.)
+  - best practices (e.g. solid principles, design patterns, etc.)
+  - approaches (e.g. mvp, product market fit, etc.)
+  - methodologies (e.g. AGILE, waterfall, scrum, kanban, etc.) // don't forget about this category!
+  - processes (e.g. ci/cd, etc.)
+  - extract backend runtimes (e.g. node.js)
+  - extract protocols or similar meaning (e.g. http, https, tcp, udp, soap, etc.)
+  - APIs (e.g. rest, graphql, soap, etc.) // don't forget about this category!
+  - security protocols and tools (e.g. https, tls, ssl, cloudflare, etc.)
+- Extract skills from:
+  - Tech Stack sections
+  - Bullet lists
+  - Experience descriptions
+  - Responsibilities
+  - Key Technical Skills
+- Add "AI" skill to the skills field if look any AI techniques or LLM concepts"
+- Add "LLM" skill  to the skills field if look any LLM concepts or large language models
+- Add "AI tools" skill to the skills field if look any AI tools or AI-powered coding tools
+- ADD KEYWORDS TO THE SKILLS FIELD:
+- Convert skills to the analogical following format:
+  - socket.io -> websocket
+  - websockets -> websocket
+  - rest api -> rest
+  - graphql api -> graphql
+  - node -> node.js
+  - postgres -> postgresql
+  - mongo -> mongodb
+  - js -> javascript
+  - ts -> typescript
+  - retrieval augmented generation -> rag
+  - large language model -> llm
+  - cursor ai -> cursor
+  - AI-powered coding tools (or same meaning) -> ai tools
+- Post-processing:
+  - Normalize skill casing to canonical names
+  - Remove duplicated strings from the skills field
 
-3. years_experience (REQUIRED)
+3. years_experience field (REQUIRED)
 - Total professional experience in years (float, e.g. 5.5)
 - Calculate based on work history dates
 - Handle overlapping roles correctly (do not double count)

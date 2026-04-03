@@ -15,6 +15,9 @@ from _common.schemas.vacancy_index import (
 from app.services.cv_data_extraction_service import extract_cv_data_for_index
 from app.utils import strip_html_to_text
 
+pc = Pinecone(api_key=settings.pinecone_api_key)
+index = pc.Index(settings.pinecone_index)
+
 
 def _vector_id_for_user(user_id: str) -> str:
     uid = user_id.strip()
@@ -46,6 +49,7 @@ def _text_for_embedding(summary: str, skills: list[str], years_expereance: float
     summary = summary.strip()
     skills_line = ", ".join(s.strip() for s in skills if s and str(s).strip())
     parts = [summary] if summary else []
+    
     if skills_line:
         parts.append(f"Skills: {skills_line}")
     parts.append(f"Years of experience: {years_expereance}")
@@ -58,12 +62,8 @@ def _text_for_embedding(summary: str, skills: list[str], years_expereance: float
 def _upsert_cv_vectors(vectors: list[dict[str, Any]]) -> None:
     if not settings.pinecone_api_key or not settings.pinecone_index:
         raise RuntimeError("PINECONE_API_KEY and pinecone_index must be set")
-
-    pc = Pinecone(api_key=settings.pinecone_api_key)
-    index = pc.Index(settings.pinecone_index)
-    ns = "cvs"
-
     try:
+        ns = "cvs"
         index.upsert(vectors=vectors, namespace=ns)
     except Exception as exc:
         msg = str(exc)
@@ -81,8 +81,6 @@ def _delete_cv_vectors(vector_ids: list[str]) -> None:
         raise RuntimeError("PINECONE_API_KEY and pinecone_index must be set")
     if not vector_ids:
         return
-    pc = Pinecone(api_key=settings.pinecone_api_key)
-    index = pc.Index(settings.pinecone_index)
     index.delete(ids=vector_ids, namespace="cvs")
 
 
@@ -111,6 +109,9 @@ async def add_to_index(payload: CvIndexPayload) -> CvIndexResponse:
         _upsert_cv_vectors,
         [{"id": vid, "values": embedding, "metadata": metadata}],
     )
+
+    print("CV vector indexed successfully", vid)
+    print("Metadata:", metadata)
 
     return CvIndexResponse(
         id=uid,

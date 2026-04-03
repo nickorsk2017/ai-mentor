@@ -18,8 +18,10 @@ from _common.schemas.vacancy_index import (
 from app.services.vacancy_data_extraction_service import extract_vacancy_data_for_index
 
 logger = logging.getLogger(__name__)
+pc = Pinecone(api_key=settings.pinecone_api_key)
+index = pc.Index(settings.pinecone_index)
 
-def _build_embeddings_client() -> OpenAIEmbeddings:
+def _get_embeddings_client() -> OpenAIEmbeddings:
     if not settings.openai_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set (required for embeddings)")
 
@@ -32,32 +34,10 @@ def _build_embeddings_client() -> OpenAIEmbeddings:
         kwargs["dimensions"] = int(settings.openai_embedding_dimensions)
     return OpenAIEmbeddings(**kwargs)
 
+embeddings_client = _get_embeddings_client()
 
 def _build_vacancy_embedding_data(text: str) -> list[float]:
-    emb = _build_embeddings_client()
-    return emb.embed_query(text)
-
-
-def _upsert_vacancy_to_vector_db(vectors: list[dict[str, Any]]) -> None:
-    if not settings.pinecone_api_key or not settings.pinecone_index:
-        raise RuntimeError("PINECONE_API_KEY and pinecone_index must be set")
-    pc = Pinecone(api_key=settings.pinecone_api_key)
-    index = pc.Index(settings.pinecone_index)
-
-    try:
-        index.upsert(
-            vectors=vectors,
-            namespace="vacancies",
-        )
-    except Exception as exc:
-        msg = str(exc)
-        if "does not match the dimension of the index" in msg:
-            raise RuntimeError(
-                "Embedding dimension does not match Pinecone index dimension. "
-                "Set OPENAI_EMBEDDING_DIMENSIONS to your index dimension "
-                "(e.g. 1024), or recreate the Pinecone index to match the embedding model."
-            ) from exc
-        raise
+    return embeddings_client.embed_query(text)
 
 
 def _sanitize_metadata_value(value: Any) -> str | int | float | bool | list[str]:
@@ -75,17 +55,6 @@ def _sanitize_metadata_value(value: Any) -> str | int | float | bool | list[str]
 
 def _sanitize_metadata(md: dict[str, Any]) -> dict[str, str | int | float | bool | list[str]]:
     return {k: _sanitize_metadata_value(v) for k, v in md.items()}
-
-
-def _delete_vacancy_from_index(vacancy_id: str) -> None:
-    if not settings.pinecone_api_key or not settings.pinecone_index:
-        raise RuntimeError("PINECONE_API_KEY and pinecone_index must be set")
-    pc = Pinecone(api_key=settings.pinecone_api_key)
-    index = pc.Index(settings.pinecone_index)
-    index.delete(
-        filter={"vacancy_id": {"$eq": vacancy_id}},
-        namespace="vacancies",
-    )
 
 
 async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse:
@@ -112,8 +81,13 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
         metadata = _sanitize_metadata(metadata)
 
         await asyncio.to_thread(
-            _upsert_vacancy_to_vector_db,
-            [{"id": req.vacancy_id, "values": embedding, "metadata": metadata}],
+            index.upsert,
+            vectors=[{
+                "id": req.vacancy_id,
+                "values": embedding,
+                "metadata": metadata,
+            }],
+            namespace="vacancies",
         )
 
         return VacancyIndexResponse(
@@ -123,12 +97,7 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
             summary=summary,
             extracted=extracted_vacancy_data,
         )
-    except ValueError as e:
-        logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
-        raise HTTPException(status_code=400, detail=str(e)) from e
-    except RuntimeError as e:
-        logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
-        raise HTTPException(status_code=503, detail=str(e)) from e
+
     except Exception as e:
         logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
         raise HTTPException(
@@ -140,7 +109,12 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
 async def delete_vacancy_index(vacancy_id: str) -> DeleteVacancyIndexResponse:
     if not vacancy_id.strip():
         raise ValueError("vacancy_id is required")
-    await asyncio.to_thread(_delete_vacancy_from_index, vacancy_id)
+    
+    await asyncio.to_thread(
+        index.delete,
+        filter={"vacancy_id": {"$eq": vacancy_id}},
+        namespace="vacancies",
+    )
     
     return DeleteVacancyIndexResponse(
         vacancy_id=vacancy_id,

@@ -199,7 +199,7 @@ def _merge_ranking(
             len_aligned = len(aligned)
             len_not_aligned = len(not_aligned)
 
-            tech_score =  round((len_aligned / (len_aligned + len_not_aligned)) * 100) if len_aligned and len_not_aligned else 0
+            tech_score =  round((len_aligned / (len_aligned + len_not_aligned)) * 100) if (len_aligned + len_not_aligned > 0) else 0
             match_score = round((tech_score + seniority_score + other_score) / (3 if other_score else 2))
 
             result.append(
