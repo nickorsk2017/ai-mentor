@@ -39,7 +39,6 @@ def _to_response(vacancy: VacancyModel) -> VacancyResponse:
         company=vacancy.company,
         description=vacancy.description,
         created_at=vacancy.created_at,
-        planned_stages=int(vacancy.planned_stages),
         stages=_stages_from_json(vacancy.stages),
     )
 
@@ -51,7 +50,6 @@ async def upsert_vacancy(req: CreateVacancyRequest) -> VacancyResponse:
             title=req.title,
             company=req.company,
             description=req.description,
-            planned_stages=req.planned_stages,
             stages=_stages_to_json(req.stages),
         )
         db.add(vacancy)
@@ -75,7 +73,6 @@ async def update_vacancy(vacancy_id: UUID, req: UpdateVacancyRequest) -> Vacancy
         vacancy.title = req.title
         vacancy.company = req.company
         vacancy.description = req.description
-        vacancy.planned_stages = req.planned_stages
         vacancy.stages = _stages_to_json(req.stages)
 
         await db.commit()

@@ -116,7 +116,7 @@ def _query_user_vacancies(user_id: str, cv_text: str) -> list[VacancyVectorSearc
 
 
 def _cv_vector_id(user_id: str) -> str:
-    return f"cv:{user_id.strip()}"
+    return f"uid:{user_id}"
 
 
 def _normalize_skills_from_metadata(raw: Any) -> list[str]:

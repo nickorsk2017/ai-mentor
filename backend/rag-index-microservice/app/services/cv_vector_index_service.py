@@ -19,10 +19,9 @@ index = pc.Index(settings.pinecone_index)
 
 
 def _vector_id_for_user(user_id: str) -> str:
-    uid = user_id.strip()
-    if not uid:
+    if not user_id:
         raise ValueError("user_id is required for CV vector id")
-    return f"cv:{uid}"
+    return f"uid:{user_id}"
 
 
 def _build_embeddings_client() -> OpenAIEmbeddings:
@@ -101,7 +100,7 @@ async def add_to_index(payload: CvIndexPayload) -> CvIndexResponse:
         "user_id": uid,
         "summary": summary,
         "years_expereance": years,
-        "skills": skills,
+        "skills": skills
     }
 
     await asyncio.to_thread(

@@ -127,7 +127,6 @@ export function VacanciesPage() {
             title: mapped.title,
             company: mapped.company,
             description: mapped.description,
-            planned_stages: mapped.planned_stages,
             created_at: mapped.created_at,
           });
 

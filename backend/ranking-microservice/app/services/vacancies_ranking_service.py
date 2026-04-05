@@ -9,11 +9,11 @@ from uuid import UUID
 from typing import Any
 from fastapi import HTTPException
 from langchain_core.messages import HumanMessage, SystemMessage
-from langchain_openai import ChatOpenAI
+from langchain_groq import ChatGroq
 
-from app.schemas.postgres_vacancy import (
-    Vacancy as VacancyResponse,
-    VacanciesByUserResponse,
+from app.schemas.vacancy_ranked import (
+    VacancyRanked,
+    VacanciesRankedResponse,
 )
 
 from app.config import settings
@@ -34,87 +34,42 @@ from app.services.vector_store_service import (
 
 logger = logging.getLogger(__name__)
 
+def _vacancy_block(vacancyIndex: VacancyFromIndex, cv_skills: list[str]) -> str:
+    plain_summary = strip_html_to_text(vacancyIndex.summary or "")
+    company = vacancyIndex.company or "(unknown)"
+    vacancy_skills = (vacancyIndex.meta_data or {}).get("skills")
 
-@dataclass
-class VacancyRankingRow:
-
-    vacancy: VacancyFromIndex
-    match_score: int | None = None
-    advice: str | None = None
-    tech_score: int | None = None
-    seniority_score: int | None = None
-    other_score: int | None = None
-    domain_score: int | None = None
-    aligned_skills: list[str] = field(default_factory=list)
-    not_aligned_skills: list[str] = field(default_factory=list)
-    summary: str | None = None
-
-    def model_dump(self) -> dict[str, object]:
-        """JSON-friendly dict for logging or APIs."""
-        v = self.vacancy
-        return {
-            "vacancy_id": str(v.id),
-            "user_id": str(v.user_id),
-            "title": v.title,
-            "company": v.company,
-            "summary": v.summary,
-            "meta_data": v.meta_data,
-            "match_score": self.match_score,
-            "advice": self.advice,
-            "tech_score": self.tech_score,
-            "seniority_score": self.seniority_score,
-            "other_score": self.other_score,
-            "domain_score": self.domain_score,
-            "aligned_skills": self.aligned_skills,
-            "not_aligned_skills": self.not_aligned_skills,
-            "summary": self.summary,
-        }
-
-def _vacancy_block(v: VacancyFromIndex, cv_skills: list[str]) -> str:
-    plain_summary = strip_html_to_text(v.summary or "")
-    company = v.company or "(unknown)"
-    vacancy_skills_raw = (v.meta_data or {}).get("skills")
-    vacancy_skills = _normalize_skills_from_metadata(vacancy_skills_raw)
-
-    cv_skill_lowercase = {s.lower() for s in cv_skills}
-    aligned = sorted({s for s in vacancy_skills if s.lower() in cv_skill_lowercase})
+    cv_skill_lowercase = {skill.lower() for skill in cv_skills}
+    aligned = sorted({skill for skill in vacancy_skills if skill.lower() in cv_skill_lowercase})
     not_aligned = sorted({s for s in vacancy_skills if s.lower() not in cv_skill_lowercase})
 
-    json_formatted = """
-    {{
-        "vacancy_id": "{vacancy_id}",
-        "title": "{title}",
-        "company": "{company}",
-        "summary": "{summary}",
-        "aligned_skills": {aligned_skills},
-        "not_aligned_skills": {not_aligned_skills}
-    }},
-    """
+    data = {
+        "vacancy_id": vacancyIndex.id,
+        "title": vacancyIndex.title or "(untitled)",
+        "company": company,
+        "summary": plain_summary,
+        "skills": json.dumps(vacancy_skills),
+        "aligned_skills": json.dumps(aligned),
+        "not_aligned_skills": json.dumps(not_aligned),
+    }
 
-    return json_formatted.format(
-        vacancy_id=v.id,
-        title=v.title or "(untitled)",
-        company=company,
-        summary=plain_summary,
-        skills=json.dumps(vacancy_skills),
-        aligned_skills=json.dumps(aligned),
-        not_aligned_skills=json.dumps(not_aligned),
-    )
+    return json.dumps(data)
 
 
 def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_index: list[VacancyFromIndex]) -> RankingResponse:
-    if not settings.openai_api_key:
-        raise RuntimeError("OPENAI_API_KEY is not set")
+    if not settings.groq_api_key:
+        raise RuntimeError("GROQ_API_KEY is not set")
 
     try:
-        llm = ChatOpenAI(
-            model=settings.openai_chat_model,
-            api_key=settings.openai_api_key,
+        llm = ChatGroq(
+            model=settings.groq_chat_model,
+            api_key=settings.groq_api_key,
             temperature=0,
             model_kwargs={
                 "response_format": {"type": "json_object"},
             }
         )
+
 
         blocks = "\n".join(_vacancy_block(vacancy_from_index, cv_skills) for vacancy_from_index in vacancies_from_index)
 
@@ -134,7 +89,13 @@ def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_ind
             ]
         )
 
-        data = json.loads(raw.content)
+        data = raw.content
+
+        if isinstance(data, str):
+            data = json.loads(data)
+        else:
+            raise TypeError(f"Unexpected content type: {type(data)}")
+
         return RankingResponse.model_validate(data)
     except Exception as e:
         logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
@@ -144,45 +105,24 @@ def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_ind
         ) from e
 
 
-def _opt_score(v: int | None) -> int | None:
-    if v is None:
-        return None
-    return max(0, min(100, int(v)))
-
-
-def _normalize_skills_from_metadata(raw: Any) -> list[str]:
-    """Normalize skills field from vacancy metadata into a flat list of strings."""
-    if raw is None:
-        return []
-    if isinstance(raw, list):
-        return [str(s).strip() for s in raw if s is not None and str(s).strip()]
-    if isinstance(raw, str) and raw.strip():
-        try:
-            parsed = json.loads(raw)
-            if isinstance(parsed, list):
-                return [str(s).strip() for s in parsed if str(s).strip()]
-        except json.JSONDecodeError:
-            # Fall back to treating raw string as a single skill
-            return [raw.strip()]
-    return []
-
-
 def _merge_ranking(
     vacancies_from_index: list[VacancyFromIndex],
     ranking_data_llm: RankingResponse,
     cv_skills: list[str],
-) -> list[VacancyRankingRow]:
+) -> list[VacancyRanked]:
     by_id: dict[str, VacancyFromIndex] = {str(r.id): r for r in vacancies_from_index}
     seen: set[str] = set()
-    result: list[VacancyRankingRow] = []
+    result: list[VacancyRanked] = []
 
     cv_skill_lowercase = {s.lower() for s in cv_skills}
-
 
     for item in ranking_data_llm.rankings:
         key = item.vacancy_id
         if key and key in by_id and key not in seen:
             vacancy = by_id[key]
+
+            stages = vacancy.meta_data.get("stages", "[]")
+            stages = json.loads(stages)
 
             advice = (item.advice or "").strip() or None
             seniority_score = item.seniority_score
@@ -190,8 +130,7 @@ def _merge_ranking(
             domain_score = item.domain_score
             summary = item.summary
             # Compute aligned / not-aligned skills based on CV vs vacancy metadata
-            vacancy_skills_raw = (vacancy.meta_data or {}).get("skills")
-            vacancy_skills = _normalize_skills_from_metadata(vacancy_skills_raw)
+            vacancy_skills = (vacancy.meta_data or {}).get("skills")
 
             aligned = sorted({s for s in vacancy_skills if s.lower() in cv_skill_lowercase}) or []
             not_aligned = sorted({s for s in vacancy_skills if s.lower() not in cv_skill_lowercase}) or []
@@ -203,8 +142,12 @@ def _merge_ranking(
             match_score = round((tech_score + seniority_score + other_score) / (3 if other_score else 2))
 
             result.append(
-                VacancyRankingRow(
-                    vacancy=vacancy,
+                VacancyRanked(
+                    id=key,
+                    title=vacancy.title,
+                    company=vacancy.company,
+                    created_at=unknown_listing_created_at(),
+                    user_id=vacancy.user_id,
                     match_score=match_score,
                     advice=advice,
                     tech_score=tech_score,
@@ -214,6 +157,7 @@ def _merge_ranking(
                     aligned_skills=aligned,
                     not_aligned_skills=not_aligned,
                     summary=summary,
+                    stages=stages,
                 )
             )
             seen.add(key)
@@ -225,7 +169,7 @@ async def rank_vacancies_by_cv(
     cv_text: str,
     cv_skills: list[str],
     vacancies_from_index: list[VacancyFromIndex],
-) -> list[VacancyRankingRow]:
+) -> list[VacancyRanked]:
     if not vacancies_from_index:
         return []
 
@@ -237,45 +181,27 @@ async def rank_vacancies_by_cv(
     return merged
 
 
-async def get_vacancies_by_user_id(user_id: UUID) -> VacanciesByUserResponse:
+async def get_vacancies_by_user_id(user_id: UUID) -> VacanciesRankedResponse:
     cv_text, cv_skills = await get_cv_profile_text_and_skills_from_pinecone(user_id)
     if not cv_text:
-        return VacanciesByUserResponse(vacancies=[])
+        return VacanciesRankedResponse(vacancies=[])
         
     pinecone_rows = await get_index_vacancies_from_pinecone(user_id, cv_text=cv_text)
     vacancies_from_index = [row.vacancy for row in pinecone_rows]
 
     if not vacancies_from_index:
-        return VacanciesByUserResponse(vacancies=[])
+        return VacanciesRankedResponse(vacancies=[])
 
     try:
-        rows_out = await rank_vacancies_by_cv(cv_text, cv_skills, vacancies_from_index)
+        vacancies_ranked = await rank_vacancies_by_cv(cv_text, cv_skills, vacancies_from_index)
     except Exception as e:
         raise RuntimeError(f"Ranking failed: {e}") from e
+    
 
-    vacancies: list[VacancyResponse] = []
-    for row in rows_out:
-        vacancy = row.vacancy
+    vacancies: list[VacancyRanked] = []
+    for vacancy_ranked in vacancies_ranked:  
         vacancies.append(
-            VacancyResponse(
-                id=vacancy.id,
-                user_id=vacancy.user_id,
-                title=vacancy.title,
-                company=vacancy.company,
-                summary=vacancy.summary or None,
-                created_at=unknown_listing_created_at(),
-                planned_stages=1,
-                stages=[],
-                match_score=row.match_score,
-                advice=row.advice,
-                tech_score=row.tech_score,
-                seniority_score=row.seniority_score,
-                other_score=row.other_score,
-                domain_score=row.domain_score,
-                aligned_skills=row.aligned_skills,
-                not_aligned_skills=row.not_aligned_skills,
-                meta_data=vacancy.meta_data,
-            )
+            vacancy_ranked
         )
 
-    return VacanciesByUserResponse(vacancies=vacancies)
+    return VacanciesRankedResponse(vacancies=vacancies)

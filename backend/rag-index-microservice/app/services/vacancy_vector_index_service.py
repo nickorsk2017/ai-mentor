@@ -8,6 +8,7 @@ import logging
 from langchain_openai import OpenAIEmbeddings
 from pinecone import Pinecone
 from fastapi import HTTPException
+import json
 
 from app.config import settings
 from _common.schemas.vacancy_index import (
@@ -68,6 +69,8 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
         extracted_vacancy_data = extracted_vacancy_data.model_dump(mode="json")
     
         embedding = await asyncio.to_thread(_build_vacancy_embedding_data, summary)
+        stages = [stage.model_dump(mode="json") for stage in req.stages]
+        stages = json.dumps(stages)
 
         metadata = {
             "kind": "vacancy",
@@ -77,6 +80,7 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
             "summary": summary,
             **extracted_vacancy_data,
             "title": req.title,
+            "stages": stages,
         }
         metadata = _sanitize_metadata(metadata)
 

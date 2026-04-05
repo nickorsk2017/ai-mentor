@@ -18,7 +18,6 @@ export async function createVacancyOnBackend(payload: {
       company: payload.company ?? "",
       description: payload.description ?? "",
       stages: [],
-      planned_stages: 1,
     }),
   });
 
@@ -50,7 +49,6 @@ export async function updateVacancyOnBackend(
     title: string;
     company?: string;
     description: string;
-    planned_stages: number;
     stages: Entity.VacancyStage[];
   }
 ): Promise<Entity.Vacancy> {
@@ -64,7 +62,6 @@ export async function updateVacancyOnBackend(
       title: payload.title,
       company: payload.company ?? "",
       description: payload.description,
-      planned_stages: payload.planned_stages,
       stages: payload.stages.map((s) => ({
         id: s.id,
         name: s.name,

@@ -20,7 +20,6 @@ class VacancyModel(BaseModel):
     title: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     company: Mapped[str | None] = mapped_column(String(255), nullable=True)
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    planned_stages: Mapped[numbers.Number] = mapped_column(Integer, nullable=False, default=1)
     stages: Mapped[list[dict[str, Any]]] = mapped_column(
         JSONB,
         nullable=False,

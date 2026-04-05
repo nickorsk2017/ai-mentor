@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ai-ranking-microservice"
 version = "0.1.0"
-description = "FastAPI ranking service: LangChain, OpenAI embeddings, Llama (Ollama), Pinecone"
+description = "FastAPI Ranking Service"
 readme = "README.md"
 requires-python = ">=3.11"
 
@@ -19,6 +19,7 @@ dependencies = [
   "pydantic-settings==2.6.1",
   "langchain-core>=0.3",
   "langchain-openai>=0.2",
+  "langchain-groq==1.1.2",
   "pinecone[grpc]>=5.0,<6",
 ]
 

@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query
 
 from app.config import settings
-from app.schemas.postgres_vacancy import VacanciesByUserResponse
+from app.schemas.vacancy_ranked import VacanciesRankedResponse
 from app.services import vacancies_ranking_service
 
 router = APIRouter()
@@ -15,10 +15,10 @@ router = APIRouter()
 def health() -> dict:
     return {"status": "ok"}
 
-@router.get("/rankings", response_model=VacanciesByUserResponse)
+@router.get("/rankings", response_model=VacanciesRankedResponse)
 async def list_vacancies_by_user(
     user_id: UUID = Query(..., description="Same UUID as CV microservice / client user id"),
-) -> VacanciesByUserResponse:
+) -> VacanciesRankedResponse:
     try:
         return await vacancies_ranking_service.get_vacancies_by_user_id(user_id)
     except RuntimeError as e:

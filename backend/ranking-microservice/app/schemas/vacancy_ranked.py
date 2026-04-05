@@ -14,14 +14,13 @@ class VacancyStageItem(BaseModel):
     notes: str = ""
 
 
-class Vacancy(BaseModel):
+class VacancyRanked(BaseModel):
     id: UUID
     user_id: UUID
     title: str
     company: str | None = None
     summary: str | None = None
     created_at: datetime
-    planned_stages: int
     stages: list[VacancyStageItem] = Field(default_factory=list)
     match_score: int | None = Field(
         None,
@@ -45,5 +44,5 @@ class Vacancy(BaseModel):
     )
 
 
-class VacanciesByUserResponse(BaseModel):
-    vacancies: list[Vacancy]
+class VacanciesRankedResponse(BaseModel):
+    vacancies: list[VacancyRanked]

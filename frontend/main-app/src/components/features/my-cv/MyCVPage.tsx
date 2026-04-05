@@ -17,14 +17,12 @@ export default function MyCVPage() {
   const [draftHtml, setDraftHtml] = useState<string>(cv?.contentHtml ?? "");
   const [fileName] = useState<string | undefined>(cv?.uploadedFileName);
   const [isLoading, setIsLoading] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const timeLoadingRef = useRef<NodeJS.Timeout | undefined>(undefined);
+  const debounceTimerRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
   
   useEffect(() => {
     return () => {
-      clearTimeout(timerRef.current);
-      clearTimeout(timeLoadingRef.current);
+      clearTimeout(debounceTimerRef.current);
     };
   }, []);
 
@@ -60,8 +58,8 @@ export default function MyCVPage() {
   const handleChangeHtml = (html: string) => {
     setDraftHtml(html);
 
-    clearTimeout(timeLoadingRef.current);
-    timeLoadingRef.current = setTimeout(async () => {
+    clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = setTimeout(async () => {
       setIsLoading(true);
       await saveCV(html);
       setIsLoading(false);

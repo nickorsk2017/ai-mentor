@@ -13,7 +13,7 @@ VACANCIES is Array of Vacancy blocks in JSON format.
 CANDIDATE_CV is JSON object with summary and skills (array of strings) and years_experience.
 
 
-OUTPUT FORMAT:
+OUTPUT FORMAT MUST BE JSON OBJECT:
 {
   "rankings": [
     {

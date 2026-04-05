@@ -13,5 +13,6 @@ namespace Entity {
         aligned_skills: string[];
         not_aligned_skills: string[];
         summary: string | null;
+        stages: Entity.VacancyStage[];
     };
 }

@@ -17,6 +17,7 @@ class VacancyFromIndex:
     summary: str
     meta_data: dict[str, Any]
     advice: str | None = None
+    stages: list[VacancyStagePayload] = field(default_factory=list)
 
 
 class VacancyIndexPayload(BaseModel):
