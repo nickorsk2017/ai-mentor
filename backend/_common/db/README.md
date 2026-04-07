@@ -13,7 +13,7 @@ Shared SQLAlchemy models and Alembic migrations for backend microservices.
 From this project:
 
 ```bash
-cd backend/_common/db_models_and_migrations
+cd backend/_common/db
 alembic upgrade head
 ```
 

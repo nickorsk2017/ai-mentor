@@ -38,7 +38,6 @@ def upgrade() -> None:
         sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column("company", sa.String(length=255), nullable=True),
         sa.Column("description", sa.Text(), nullable=False),
-        sa.Column("", sa.Integer(), nullable=False),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
