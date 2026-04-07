@@ -114,7 +114,7 @@ def _merge_ranking(
     seen: set[str] = set()
     result: list[VacancyRanked] = []
 
-    cv_skill_lowercase = {s.lower() for s in cv_skills}
+    cv_skill_lowercase = {s for s in cv_skills}
 
     for item in ranking_data_llm.rankings:
         key = item.vacancy_id
@@ -132,8 +132,8 @@ def _merge_ranking(
             # Compute aligned / not-aligned skills based on CV vs vacancy metadata
             vacancy_skills = (vacancy.meta_data or {}).get("skills")
 
-            aligned = sorted({s for s in vacancy_skills if s.lower() in cv_skill_lowercase}) or []
-            not_aligned = sorted({s for s in vacancy_skills if s.lower() not in cv_skill_lowercase}) or []
+            aligned = sorted({s for s in vacancy_skills if s in cv_skill_lowercase}) or []
+            not_aligned = sorted({s for s in vacancy_skills if s not in cv_skill_lowercase}) or []
     
             len_aligned = len(aligned)
             len_not_aligned = len(not_aligned)

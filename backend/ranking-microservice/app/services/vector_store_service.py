@@ -164,7 +164,9 @@ def _fetch_cv_index_metadata_sync(user_id: str) -> dict[str, Any] | None:
 
     if rec is None:
         return None
+
     md = getattr(rec, "metadata", None)
+
     if not md:
         return None
     return dict(md)

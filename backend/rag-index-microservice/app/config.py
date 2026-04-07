@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     port: int = 8003
 
     openai_api_key: str = ""
-    openai_chat_model: str = "gpt-4o-mini"
+    openai_chat_model: str = "gpt-5-mini"
     openai_embedding_model: str = "text-embedding-3-small"
     openai_embedding_dimensions: int = 1536
 

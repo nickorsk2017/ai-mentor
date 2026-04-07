@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 
 class VacancyIndexRecord(BaseModel):
-    """Structured output aligned with EXTRACT_JOB_DESCRIPTION_PROMPT."""
+    """Structured output aligned with EXTRACT__DATA_VACANCY_PROMPT."""
 
     title: str = ""
     skills: list[str] = Field(default_factory=list)

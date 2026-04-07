@@ -103,7 +103,7 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
         )
 
     except Exception as e:
-        logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
+        logger.exception("VACANCY INDEX VALIDATION ERROR: %s", e)
         raise HTTPException(
             status_code=502,
             detail=f"Upstream error while indexing: {type(e).__name__}: {e}",

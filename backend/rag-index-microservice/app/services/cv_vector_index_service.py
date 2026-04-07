@@ -103,6 +103,8 @@ async def add_to_index(payload: CvIndexPayload) -> CvIndexResponse:
         "skills": skills
     }
 
+    print("metadata:", metadata)
+
     await asyncio.to_thread(
         _upsert_cv_vectors,
         [{"id": vid, "values": embedding, "metadata": metadata}],

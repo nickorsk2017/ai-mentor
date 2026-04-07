@@ -29,9 +29,7 @@ export function VacancyRankedCard({
   isActive,
   onActivate,
 }: ComponentProps) {
-  const completedStages = vacancy.completed_stages ?? 0;
   const stages = vacancy.stages;
-  const failedStages = vacancy.failed_stages ?? 0;
   const salary_range: string = vacancy.meta_data?.salary_range as string || "No salary range provided";
 
   const summary = vacancy.summary;

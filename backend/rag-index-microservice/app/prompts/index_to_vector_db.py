@@ -1,6 +1,5 @@
-EXTRACT_JOB_FIELDS = """
+EXTRACT_VACANCY_FIELDS = """
 - title (string) // IMPORTANT: if not present, set value to empty string
-- skills (array of technologies)
 - seniority_score (string) // ONLY THIS VALUES: junior/mid/senior/lead
 - years_of_experience (string) // IMPORTANT: if not present, set value to empty string
 - role (string) // ONLY THIS VALUES: frontend/backend/fullstack/devops/ai/pm/
@@ -20,7 +19,8 @@ EXTRACT_JOB_FIELDS = """
 - summary (string) // IMPORTANT: IT MUST BE FILLED; SPLIT PARAGRAPHS WITH 2 NEW LINES AFTER EACH PARAGRAPH
 """
 
-EXTRACT_JOB_DESCRIPTION_PROMPT = """
+
+EXTRACT__DATA_VACANCY_PROMPT = """
 Extract structured information from this job description.
 
 Return JSON with the following fields:
@@ -40,89 +40,17 @@ SUMMARY SHOULD BE 8-15 SENTENCES.
 - COMPANY_WEBSITE SHOULD BE IN FORMAT "https://www.company.com" OR "https://company.com
 - BENEFITS SHOULD BE ARRAY OF STRINGS.
 - COMPANY_TYPE SHOULD BE IN FORMAT "startup" OR "enterprise" OR "government" OR "non-profit" OR "outsourcing" OR "other".
-- YEARS_OF_EXPERIENCE SHOULD BE IN FORMAT "0-1" OR "1-3" OR "3-5" OR "5-10" OR "10+".
-- INCLUDE ONLY CORE TECHNOLOGIES, FRAMEWORKS, TOOLS, DATABASES, CLOUD SERVICES, LANGUAGES.
-- INCLUDE ALL SKILLS TO THE SKILLS FIELD:
-  - technologies (e.g. React, Angular, Vue, Node, PostgreSQL, MongoDB, etc.)
-  - platforms (e.g. AWS, Azure, GCP, Node etc.)
-  - programming languages (e.g. Python, JavaScript, TypeScript, etc.)
-  - tools for job (e.g. Jira, Notion, Slack, etc.)
-  - frameworks (e.g. React, Angular, Vue, etc.)
-  - libraries (e.g. Lodash, Moment, etc.)
-  - techniques (e.g. SOLID principles, Design Patterns, etc.)
-  - approaches (e.g. Agile, Scrum, MVP, Product Market Fit etc.)
-  - methodologies (e.g. Waterfall, Agile, etc.)
-  - processes (e.g. CI/CD, etc.)
-  - extract backend runtimes
-- SKILLS SHOULD BE NORMALIZED, RULES:
-  - Socket.io -> WebSocket
-  - WebSockets → WebSocket
-  - REST API → REST
-  - GraphQL API → GraphQL
-  - Node → Node.js
-  - Postgres → PostgreSQL
-  - Mongo → MongoDB
-  - JS → JavaScript
-  - TS → TypeScript
-  - Retrieval Augmented Generation → RAG
-  - Large Language Model → LLM
-  - Cursor AI → Cursor
-  - AI-powered coding tools (or same meaning) → AI tools
-- SKILLS SHOULD BE DEDUPLICATED TO REMOVE SIMILAR ITEMS (e.g. "JS" → "JavaScript")
 """
 
-EXTRACT_CV_FOR_INDEX_FIELDS = """
+EXTRACT_CV_FIELDS_RULES = """
 
 {
   "summary": string,
-  "skills": string[],
   "years_experience": number
 }
 
-Extraction rules:
 
-1. skills field (REQUIRED)
-- DO NOT SKIP TRAILING ITEMS BEFORE NEW LINE OR END OF THE TEXT
-- INCLUDE ALL SKILLS TO THE SKILLS FIELD:
-  - technologies (e.g. React, Angular, Vue, Node, PostgreSQL, MongoDB, etc.)
-  - platforms (e.g. AWS, Azure, GCP, Node etc.)
-  - programming languages (e.g. Python, JavaScript, TypeScript, etc.)
-  - tools for job (e.g. Jira, Notion, Slack, etc.)
-  - frameworks (e.g. React, Angular, Vue, etc.)
-  - libraries (e.g. Lodash, Moment, etc.)
-  - techniques (e.g. SOLID principles, Design Patterns, etc.)
-  - approaches (e.g. Agile, Scrum, MVP, Product Market Fit etc.)
-  - methodologies (e.g. Waterfall, Agile, etc.)
-  - processes (e.g. CI/CD, etc.)
-  - extract backend runtimes
-- Extract skills from:
-  - Tech Stack sections
-  - Bullet lists
-  - Experience descriptions
-  - Responsibilities
-  - Key Technical Skills
-- Add "AI" skill to the skills field if look any AI techniques or LLM concepts"
-- Add "LLM" skill  to the skills field if look any LLM concepts or large language models
-- Add "AI tools" skill to the skills field if look any AI tools or AI-powered coding tools
-- Convert skills to the analogical following format:
-  - socket.io -> websocket
-  - websockets -> websocket
-  - rest api -> rest
-  - graphql api -> graphql
-  - node -> node.js
-  - postgres -> postgresql
-  - mongo -> mongodb
-  - js -> javascript
-  - ts -> typescript
-  - retrieval augmented generation -> rag
-  - large language model -> llm
-  - cursor ai -> cursor
-  - AI-powered coding tools (or same meaning) -> ai tools
-- Post-processing:
-  - Normalize skill casing to canonical names
-  - Merge duplicated strings in the skills field to one item (e.g. [Node.js, Node.js] -> [Node.js])
-
-2. summary field (REQUIRED)
+SUMMARY FIELD RULES (REQUIRED):
 - 4-6 sentences
 - Written in third person or neutral tone (no "I")
 - Must include:
@@ -134,7 +62,7 @@ Extraction rules:
 - Avoid filler words, marketing language, and repetition
 - sentense should be short and concise
 
-3. years_experience field (REQUIRED)
+YEARS_EXPERIENCE FIELD RULES (REQUIRED):
 - Total professional experience in years (float, e.g. 5.5)
 - Calculate based on work history dates
 - Handle overlapping roles correctly (do not double count)
@@ -147,7 +75,8 @@ Output rules:
 - All fields are required
 """
 
-EXTRACT_CV_FOR_INDEX_PROMPT = """
+
+EXTRACT_DATA_CV_PROMPT = """
 You extract structured fields from a CV or resume.
 
 Return JSON with exactly these fields:
@@ -155,6 +84,5 @@ Return JSON with exactly these fields:
 
 Rules:
 - SUMMARY must be non-empty whenever the document contains any employment or project history; synthesize from the text.
-- SKILLS: only items clearly supported by the document; no fabrication.
 - years_expereance: infer from dates and stated experience; if ranges conflict, choose a adviceable single number.
 """
