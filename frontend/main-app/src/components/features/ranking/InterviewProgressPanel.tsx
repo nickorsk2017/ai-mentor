@@ -1,7 +1,5 @@
 "use client";
 
-import { useMemo } from "react";
-
 export type InterviewProgressPanelProps = {
   stages: Entity.VacancyStage[];
 };
@@ -21,33 +19,21 @@ export function InterviewProgressPanel({
         )
       : 0;
 
-  const stagesJSX = useMemo(() => {
-    if(totalStages === 0) return <div className="mt-2">
-      No stages added yet
-    </div>;
-
-    return (
-      <div>
-        <p className="mt-1 text-sm text-zinc-600">
-          {completedStages} / {totalStages} stages completed
-        </p>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200">
-          <div
-            className="h-full rounded-full bg-emerald-500"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-        {failedStages > 0 && <p className="mt-2 text-sm text-rose-600">
-          {`${failedStages} failed stage${failedStages > 1 ? "s" : ""}`}
-        </p>}
-      </div>
-    )
-  }, [completedStages, totalStages, progressPct, failedStages]);
-
   return (
     <div className="rounded-xl border border-zinc-200 p-3">
       <p className="text-sm font-medium text-zinc-700">Interview Progress</p>
-      {stagesJSX}
+      <p className="mt-1 text-sm text-zinc-600">
+        {completedStages} / {totalStages} stages completed
+      </p>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-zinc-200">
+        <div
+          className="h-full rounded-full bg-emerald-500"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+      {failedStages > 0 && <p className="mt-2 text-sm text-rose-600">
+        {`${failedStages} failed stage${failedStages > 1 ? "s" : ""}`}
+      </p>}
     </div>
   );
 }
