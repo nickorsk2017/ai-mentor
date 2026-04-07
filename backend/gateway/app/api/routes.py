@@ -8,7 +8,7 @@ from fastapi import APIRouter, Body, Query
 from app.config import settings
 from _common.schemas.vacancy_index import CvIndexPayload
 from _common.schemas.vacancy import (
-    UpdateVacancyRequest,
+    UpsertVacancyRequest,
 )
 from _common.schemas.vacancy_index import (
     VacancyIndexPayload,
@@ -65,7 +65,7 @@ async def create_vacancy(body: dict[str, Any] = Body(...)) -> Any:
 
 
 @router.patch("/vacancies/{vacancy_id}")
-async def update_vacancy(vacancy_id: UUID, payload: UpdateVacancyRequest) -> Any:
+async def update_vacancy(vacancy_id: UUID, payload: UpsertVacancyRequest) -> Any:
     payload_dict = payload.model_dump(mode="json")
     payload_dict.update({"vacancy_id": str(vacancy_id)})
 

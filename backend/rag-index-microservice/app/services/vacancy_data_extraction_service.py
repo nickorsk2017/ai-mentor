@@ -12,22 +12,6 @@ from app.services.skills_data_extraction_service import extract_skills_from_vaca
 from app.utils import strip_html_to_text
 
 
-
-def _build_prompt(
-    title: str,
-    company: str | None,
-    description_html: str,
-) -> str:
-    description = strip_html_to_text(description_html)
-    parts = [
-        f"Job title : {title or '(empty)'}",
-        f"Company: {company or '(unknown)'}",
-        "Job description:",
-        description or "(empty)",
-    ]
-    return "\n".join(parts)
-
-
 def _get_llm_client() -> ChatOpenAI:
     if not settings.openai_api_key:
         raise RuntimeError("OPENAI_API_KEY is not set (required for extraction)")

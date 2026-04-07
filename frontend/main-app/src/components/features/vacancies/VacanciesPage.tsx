@@ -7,9 +7,8 @@ import { Container } from "@/components/layout/Container";
 import { Header } from "@/components/layout/Header";
 import { VacancyCard } from "./VacancyCard";
 import {
-  createVacancyOnBackend,
   deleteVacancyOnBackend,
-  updateVacancyOnBackend,
+  upsertVacancyOnBackend,
 } from "@/services/vacancyService";
 import { Preloader } from "@/components/common/ui/Preloader";
 
@@ -22,10 +21,6 @@ export function VacanciesPage() {
     updateVacancyStages,
     fetchVacancies,
   } = useVacancyStore();
-
-  const [stageCountModalVacancyId, setStageCountModalVacancyId] =
-    useState<string | null>(null);
-  const [stageCountInput, setStageCountInput] = useState<string>("");
   const [activeVacancyId, setActiveVacancyId] = useState<string | null>(null);
   const [savingVacancyId, setSavingVacancyId] = useState<string | null>(null);
   const timerSaveRef = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -55,9 +50,10 @@ export function VacanciesPage() {
       title: "",
       company: "",
       description: "",
+      stages: [],
     };
 
-    const saved = await createVacancyOnBackend(draft);
+    const saved = await upsertVacancyOnBackend(uuidv4(), draft);
     setActiveVacancyId(saved.id);
     addVacancy(saved);
     scrollToBottomSmooth();
@@ -121,7 +117,7 @@ export function VacanciesPage() {
         };
 
         try {
-          const mapped = await updateVacancyOnBackend(vacancyId, data);
+          const mapped = await upsertVacancyOnBackend(vacancyId, data);
 
           updateVacancy(mapped.id, {
             title: mapped.title,

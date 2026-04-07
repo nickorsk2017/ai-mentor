@@ -13,15 +13,7 @@ class VacancyStagePayload(BaseModel):
     notes: str = ""
 
 
-class CreateVacancyRequest(BaseModel):
-    user_id: UUID
-    title: str
-    company: str | None = None
-    description: str = ""
-    stages: list[VacancyStagePayload] = Field(default_factory=list)
-
-
-class UpdateVacancyRequest(BaseModel):
+class UpsertVacancyRequest(BaseModel):
     user_id: UUID
     title: str
     company: str | None = None

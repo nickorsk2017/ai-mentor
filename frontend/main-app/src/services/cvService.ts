@@ -1,19 +1,6 @@
-import { v4 as uuidv4 } from "uuid";
-
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001" ;
+import { getOrCreateUserId, getUpdatedAtTimestamp, setUpdatedAtTimestamp } from "./mainService";
 
-const USER_ID_KEY = "ai-hr-user-id";
-const CV_ID_KEY = "ai-hr-cv-id";
-
-export function getOrCreateUserId(): string {
-
-  const existing = window.localStorage.getItem(USER_ID_KEY);
-  if (existing) return existing;
-
-  const created = uuidv4();
-  window.localStorage.setItem(USER_ID_KEY, created);
-  return created;
-}
 
 export type CVResponse = {
   id: string;
@@ -24,6 +11,8 @@ export type CVResponse = {
 
 export async function saveCV(cvText: string): Promise<CVResponse> {
   const userId = getOrCreateUserId();
+  setUpdatedAtTimestamp();
+  
   const res = await fetch(`${API_URL}/cvs`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -35,18 +24,15 @@ export async function saveCV(cvText: string): Promise<CVResponse> {
   }
 
   const data = (await res.json()) as CVResponse;
-  if (typeof window !== "undefined") {
-    window.localStorage.setItem(CV_ID_KEY, data.id);
-  }
   return data;
 }
 
 export async function getCV(): Promise<CVResponse | null> {
   if (typeof window === "undefined") return null;
-  const cvId = window.localStorage.getItem(CV_ID_KEY);
-  if (!cvId) return null;
+  const cvID = getOrCreateUserId()
+  if (!cvID) return null;
 
-  const res = await fetch(`${API_URL}/cvs/${cvId}`);
+  const res = await fetch(`${API_URL}/cvs/${cvID}`);
   if (res.status === 404) return null;
   if (!res.ok) {
     throw new Error(`Load CV failed (${res.status})`);

@@ -1,4 +1,4 @@
-import { getOrCreateUserId } from "./cvService";
+import { getOrCreateUserId } from "./mainService";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001" ;
 

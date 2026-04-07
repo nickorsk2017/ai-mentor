@@ -4,12 +4,10 @@ from uuid import UUID
 from ..services.vacancy_service import (
     upsert_vacancy,
     get_vacancies,
-    update_vacancy,
     delete_vacancy,
 )
 from _common.schemas.vacancy import (
-    CreateVacancyRequest,
-    UpdateVacancyRequest,
+    UpsertVacancyRequest,
     DeleteVacancyResponse,
     VacancyResponse,
     VacanciesResponse,
@@ -23,19 +21,14 @@ def health() -> dict:
     return {"status": "ok"}
 
 
-@router.post("/vacancies", response_model=VacancyResponse)
-async def upsert_vacancy_endpoint(req: CreateVacancyRequest) -> VacancyResponse:
-    return await upsert_vacancy(req)
-
-
 @router.patch("/vacancies/{vacancy_id}", response_model=VacancyResponse)
-async def update_vacancy_endpoint(
-    vacancy_id: UUID, req: UpdateVacancyRequest
+async def upsert_vacancy_endpoint(
+    vacancy_id: UUID, req: UpsertVacancyRequest
 ) -> VacancyResponse:
-    updated = await update_vacancy(vacancy_id, req)
-    if updated is None:
+    responseData = await upsert_vacancy(vacancy_id, req)
+    if responseData is None:
         raise HTTPException(status_code=404, detail="Vacancy not found")
-    return updated
+    return responseData
 
 
 @router.get("/vacancies", response_model=VacanciesResponse)

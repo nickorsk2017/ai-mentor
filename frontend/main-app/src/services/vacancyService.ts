@@ -1,33 +1,6 @@
-import { getOrCreateUserId } from "./cvService";
+import { getOrCreateUserId, setUpdatedAtTimestamp } from "./mainService";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001" ;
-
-export async function createVacancyOnBackend(payload: {
-  title: string;
-  company?: string;
-  description?: string;
-}): Promise<Entity.Vacancy> {
-  const userId = getOrCreateUserId();
-
-  const res = await fetch(`${API_URL}/vacancies`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      user_id: userId,
-      title: payload.title,
-      company: payload.company ?? "",
-      description: payload.description ?? "",
-      stages: [],
-    }),
-  });
-
-  if (!res.ok) {
-    throw new Error(`Create vacancy failed (${res.status})`);
-  }
-
-  const vacancy = (await res.json()) as Entity.Vacancy;
-  return vacancy;
-}
 
 export async function getVacanciesOnBackend(): Promise<{ vacancies: Entity.Vacancy[] }> {
   const userId = getOrCreateUserId();
@@ -43,7 +16,7 @@ export async function getVacanciesOnBackend(): Promise<{ vacancies: Entity.Vacan
   return data;
 }
 
-export async function updateVacancyOnBackend(
+export async function upsertVacancyOnBackend(
   vacancyId: string,
   payload: {
     title: string;
@@ -53,6 +26,7 @@ export async function updateVacancyOnBackend(
   }
 ): Promise<Entity.Vacancy> {
   const userId = getOrCreateUserId();
+  setUpdatedAtTimestamp();
 
   const res = await fetch(`${API_URL}/vacancies/${vacancyId}`, {
     method: "PATCH",

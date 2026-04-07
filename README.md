@@ -13,7 +13,7 @@ Live demo: https://match-vacancy.com/
 ## Project Structure
 
 ```text
-ai-hr-agent/
+ai-mentor-agent/
 ├── frontend/
 │   └── main-app/                 # Next.js frontend
 ├── backend/

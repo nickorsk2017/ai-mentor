@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useVacancyRankingStore } from "@/stores/vacancyRankedStore";
+import { getCvUpdatedAtTimestamp } from "@/services/cvService";
 import Image from "next/image";
 import { VacancyRankedCard } from "@/components/features/ranking/VacancyRankedCard";
 
@@ -11,24 +12,37 @@ export default function RankingPage() {
   const loadingVacancies = useVacancyRankingStore((s) => s.loadingVacancies);
   const vacanciesError = useVacancyRankingStore((s) => s.vacanciesError);
   const activeVacancyId = useVacancyRankingStore((s) => s.activeVacancyId);
-  const fetchMatchedVacancies = useVacancyRankingStore(
-    (s) => s.fetchMatchedVacancies
-  );
-  const setActiveVacancyId = useVacancyRankingStore(
-    (s) => s.setActiveVacancyId
-  );
+  const {fetchMatchedVacancies, setActiveVacancyId, clearStore} = useVacancyRankingStore();
+  
 
   useEffect(() => {
     fetchMatchedVacancies();
-  }, [fetchMatchedVacancies]);
+      
+    return () => {
+      clearStore()
+    };
+  }, [clearStore]);
 
 
-  const avgFit = vacancies.length
-    ? Math.round(vacancies.reduce((acc, vacancy) => acc + vacancy.match_score, 0) / vacancies.length)
-    : 0;
-  const strongMatches = vacancies.filter((vacancy) => vacancy.match_score >= 70).length;
-  const weakMatches = vacancies.filter((vacancy) => vacancy.match_score < 70).length;
-  const vacanciesSorted = vacancies.sort((a, b) => b.match_score - a.match_score);
+  const { avgFit, strongMatches, weakMatches, vacanciesSorted } = useMemo(() => {
+    const avg =
+      vacancies.length > 0
+        ? Math.round(
+            vacancies.reduce((acc, vacancy) => acc + vacancy.match_score, 0) /
+              vacancies.length
+          )
+        : 0;
+    const strong = vacancies.filter((vacancy) => vacancy.match_score >= 70).length;
+    const weak = vacancies.filter((vacancy) => vacancy.match_score < 70).length;
+    const sorted = [...vacancies].sort((a, b) => b.match_score - a.match_score);
+
+    return {
+      avgFit: avg,
+      strongMatches: strong,
+      weakMatches: weak,
+      vacanciesSorted: sorted,
+    };
+  }, [vacancies]);
 
   return (
     <section className="flex w-full flex-col gap-5 mt-16 md:mt-0">

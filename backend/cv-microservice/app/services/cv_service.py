@@ -11,12 +11,9 @@ from app.models import CVModel
 from app.schemas import UpsertCVRequest, CVResponse
 
 
-async def _get_cv_or_404(db: AsyncSession, cv_id: uuid.UUID) -> CVModel:
-    result = await db.execute(select(CVModel).where(CVModel.id == cv_id))
+async def _get_cv(db: AsyncSession, cv_id: str) -> CVModel:
+    result = await db.execute(select(CVModel).where(CVModel.user_id == cv_id))
     cv = result.scalar_one_or_none()
-
-    if not cv:
-        raise HTTPException(status_code=404, detail="CV not found")
     return cv
 
 
@@ -24,8 +21,14 @@ async def upsert_cv(req: UpsertCVRequest) -> CVResponse:
     cv_text = req.cv_text or ""
 
     async with SessionLocal() as db:
-        cv = CVModel(user_id=req.user_id, cv_text=cv_text)
-        db.add(cv)
+        cv = await _get_cv(db, req.user_id)
+
+        if not cv:
+            cv = CVModel(user_id=req.user_id, cv_text=cv_text)
+            db.add(cv)
+        else:
+            cv.cv_text = cv_text  # update existing record
+
         await db.commit()
         await db.refresh(cv)
 
@@ -39,7 +42,10 @@ async def upsert_cv(req: UpsertCVRequest) -> CVResponse:
 
 async def get_cv(cv_id: uuid.UUID) -> CVResponse:
     async with SessionLocal() as db:
-        cv = await _get_cv_or_404(db, cv_id)
+        cv = await _get_cv(db, cv_id)
+
+        if not cv:
+            raise HTTPException(status_code=404, detail="CV not found")
 
         return CVResponse(
             id=cv.id,

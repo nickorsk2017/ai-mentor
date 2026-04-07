@@ -8,8 +8,7 @@ from sqlalchemy import select
 from app.db.session import SessionLocal
 from _common.db.models.vacancy import VacancyModel
 from app.schemas.vacancy import (
-    CreateVacancyRequest,
-    UpdateVacancyRequest,
+    UpsertVacancyRequest,
     DeleteVacancyResponse,
     VacancyResponse,
     VacanciesResponse,
@@ -43,40 +42,45 @@ def _to_response(vacancy: VacancyModel) -> VacancyResponse:
     )
 
 
-async def upsert_vacancy(req: CreateVacancyRequest) -> VacancyResponse:
+async def upsert_vacancy(
+    vacancy_id: UUID,
+    req: UpsertVacancyRequest,
+) -> VacancyResponse:
     async with SessionLocal() as db:
-        vacancy = VacancyModel(
-            user_id=req.user_id,
-            title=req.title,
-            company=req.company,
-            description=req.description,
-            stages=_stages_to_json(req.stages),
-        )
-        db.add(vacancy)
+        vacancy = None
+
+        if vacancy_id:
+            result = await db.execute(
+                select(VacancyModel).where(VacancyModel.id == vacancy_id)
+            )
+            vacancy = result.scalar_one_or_none()
+
+        if vacancy:
+            # 🔒 ownership check
+            if vacancy.user_id != req.user_id:
+                raise HTTPException(status_code=403, detail="Forbidden")
+
+            # ✏️ update
+            vacancy.title = req.title
+            vacancy.company = req.company
+            vacancy.description = req.description
+            vacancy.stages = _stages_to_json(req.stages)
+
+        else:
+            # ➕ create
+            vacancy = VacancyModel(
+                id=vacancy_id,
+                user_id=req.user_id,
+                title=req.title,
+                company=req.company,
+                description=req.description,
+                stages=_stages_to_json(req.stages),
+            )
+            db.add(vacancy)
+
         await db.commit()
         await db.refresh(vacancy)
 
-        return _to_response(vacancy)
-
-
-async def update_vacancy(vacancy_id: UUID, req: UpdateVacancyRequest) -> VacancyResponse | None:
-    async with SessionLocal() as db:
-        result = await db.execute(
-            select(VacancyModel).where(VacancyModel.id == vacancy_id)
-        )
-        vacancy = result.scalar_one_or_none()
-        if vacancy is None:
-            return None
-        if vacancy.user_id != req.user_id:
-            raise HTTPException(status_code=403, detail="Forbidden")
-
-        vacancy.title = req.title
-        vacancy.company = req.company
-        vacancy.description = req.description
-        vacancy.stages = _stages_to_json(req.stages)
-
-        await db.commit()
-        await db.refresh(vacancy)
         return _to_response(vacancy)
 
 

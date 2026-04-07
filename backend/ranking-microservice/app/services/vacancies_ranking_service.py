@@ -34,7 +34,7 @@ from app.services.vector_store_service import (
 
 logger = logging.getLogger(__name__)
 
-def _vacancy_block(vacancyIndex: VacancyFromIndex, cv_skills: list[str]) -> str:
+def _get_vacancy_block(vacancyIndex: VacancyFromIndex, cv_skills: list[str]) -> str:
     plain_summary = strip_html_to_text(vacancyIndex.summary or "")
     company = vacancyIndex.company or "(unknown)"
     vacancy_skills = (vacancyIndex.meta_data or {}).get("skills")
@@ -71,7 +71,7 @@ def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_ind
         )
 
 
-        blocks = "\n".join(_vacancy_block(vacancy_from_index, cv_skills) for vacancy_from_index in vacancies_from_index)
+        blocks = "\n".join(_get_vacancy_block(vacancy_from_index, cv_skills) for vacancy_from_index in vacancies_from_index)
 
         cv_plane_text = strip_html_to_text(cv_text)
 

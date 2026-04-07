@@ -80,6 +80,9 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
         }
         metadata = _sanitize_metadata(metadata)
 
+        print(metadata)
+        print("--------------------------------")
+
         await asyncio.to_thread(
             index.upsert,
             vectors=[{

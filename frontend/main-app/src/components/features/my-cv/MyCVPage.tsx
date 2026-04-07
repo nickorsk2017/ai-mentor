@@ -59,6 +59,7 @@ export default function MyCVPage() {
     setDraftHtml(html);
 
     clearTimeout(debounceTimerRef.current);
+    
     debounceTimerRef.current = setTimeout(async () => {
       setIsLoading(true);
       await saveCV(html);

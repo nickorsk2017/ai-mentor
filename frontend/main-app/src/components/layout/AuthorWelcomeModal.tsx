@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Modal } from "@/components/common/ui/Modal";
 import { LinkedInIcon } from "@/components/common/icons";
-const FIRST_VISIT_KEY = "is_visited";
+const FIRST_VISIT_KEY = "ai_mentor_is_visited";
 const LINKEDIN_URL = "https://www.linkedin.com/in/nickot/";
 
 export function AuthorWelcomeModal() {
