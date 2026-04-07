@@ -1,8 +1,10 @@
 .PHONY: venv system-deps install-backend-deps install-frontend-deps install-deps \
-start-backend stop-backend restart-backend logs status
+start-backend stop-backend restart-backend logs status \
+db-migrate db-migrate-current db-migrate-history db-migrate-down
 
 VENV=.venv
 REPO_ROOT := $(shell cd "$(dir $(lastword $(MAKEFILE_LIST)))" && pwd)
+DB_DIR=$(REPO_ROOT)/backend/_common/db
 PYTHON=$(VENV)/bin/python
 PIP=$(VENV)/bin/pip
 UV=$(REPO_ROOT)/$(VENV)/bin/uv
@@ -27,6 +29,23 @@ install-backend-deps: venv
 	cd ./backend/rag-index-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
 	cd ./backend/ranking-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
 	cd ./backend/vacancy-microservice && uv sync && uv add gunicorn "uvicorn[standard]"
+
+
+# -----------------------------
+# Database migrations (Alembic; DATABASE_URL from env or backend/_common/.env)
+# -----------------------------
+
+db-migrate:
+	cd $(DB_DIR) && uv run alembic upgrade head
+
+db-migrate-current:
+	cd $(DB_DIR) && uv run alembic current
+
+db-migrate-history:
+	cd $(DB_DIR) && uv run alembic history
+
+db-migrate-down:
+	cd $(DB_DIR) && uv run alembic downgrade -1
 
 
 # -----------------------------
@@ -142,6 +161,8 @@ FRONTEND_NAME=ai-mentor-frontend
 install-frontend:
 	curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 	sudo apt-get install -y nodejs
+	sudo corepack enable
+	sudo corepack prepare pnpm@latest --activate
 	cd $(FRONTEND_DIR) && pnpm install
 	cd $(FRONTEND_DIR) && pnpm run build
 	sudo pnpm install -g pm2

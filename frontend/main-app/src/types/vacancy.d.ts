@@ -1,10 +1,6 @@
 namespace Entity {
 
-    enum StageStatus {
-        SCHEDULED = "scheduled",
-        DONE = "done",
-        FAILED = "failed",
-    }
+    type StageStatus = "scheduled" | "done" | "failed";
 
     type VacancyStage = {
         id: string;
