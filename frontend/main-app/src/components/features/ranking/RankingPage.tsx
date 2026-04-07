@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import { useVacancyRankingStore } from "@/stores/vacancyRankedStore";
-import { getCvUpdatedAtTimestamp } from "@/services/cvService";
 import Image from "next/image";
 import { VacancyRankedCard } from "@/components/features/ranking/VacancyRankedCard";
 
@@ -10,7 +9,7 @@ import { VacancyRankedCard } from "@/components/features/ranking/VacancyRankedCa
 export default function RankingPage() {
   const vacancies: Entity.RankedVacancy[] = useVacancyRankingStore((s) => s.vacancies);
   const loadingVacancies = useVacancyRankingStore((s) => s.loadingVacancies);
-  const vacanciesError = useVacancyRankingStore((s) => s.vacanciesError);
+  const rankingError = useVacancyRankingStore((s) => s.error);
   const activeVacancyId = useVacancyRankingStore((s) => s.activeVacancyId);
   const {fetchMatchedVacancies, setActiveVacancyId, clearStore} = useVacancyRankingStore();
   
@@ -21,7 +20,7 @@ export default function RankingPage() {
     return () => {
       clearStore()
     };
-  }, [clearStore]);
+  }, [fetchMatchedVacancies, clearStore]);
 
 
   const { avgFit, strongMatches, weakMatches, vacanciesSorted } = useMemo(() => {
@@ -89,17 +88,17 @@ export default function RankingPage() {
         <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base text-zinc-500">Loading vacancies...</p>
       )}
 
-      {vacanciesError && !loadingVacancies && (
+      {rankingError && !loadingVacancies && (
         <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800">
-          {vacanciesError}
+          {rankingError}
         </p>
       )}
 
-      {!loadingVacancies && !vacanciesError && vacancies.length === 0 ? (
+      {!loadingVacancies && !rankingError && vacancies.length === 0 ? (
         <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-base text-zinc-500">
           No vacancies to rank yet. Add a few on the Vacancies page first.
         </p>
-      ) : !loadingVacancies && !vacanciesError ? (
+      ) : !loadingVacancies && !rankingError ? (
         <div className="flex flex-col gap-4">
           {vacanciesSorted.map((vacancy, index) => (
             <VacancyRankedCard

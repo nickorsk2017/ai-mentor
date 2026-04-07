@@ -1,4 +1,4 @@
-import { getOrCreateUserId, setUpdatedAtTimestamp } from "./mainService";
+import { getOrCreateUserId, setUpdateTimeVacancies } from "./mainService";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001" ;
 
@@ -26,7 +26,7 @@ export async function upsertVacancyOnBackend(
   }
 ): Promise<Entity.Vacancy> {
   const userId = getOrCreateUserId();
-  setUpdatedAtTimestamp();
+  setUpdateTimeVacancies();
 
   const res = await fetch(`${API_URL}/vacancies/${vacancyId}`, {
     method: "PATCH",
