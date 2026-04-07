@@ -17,6 +17,15 @@ RULES:
 * methodologies (scrum, kanban, agile)
 * testing types (manual testing, automation testing)
 * analytics/tools (sql, excel, tableau)
+* databases (postgres, mysql, mongodb, redis, elasticsearch, vector database, etc.)
+* cloud services (aws, azure, gcp, etc.)
+* protocols (http, https, tcp, udp, etc.)
+* standards (rest, api, http, sql, etc.)
+* paradigms (event-driven architecture, microservices, etc.)
+* best practices (scalability, performance, etc.)
+* concepts (ai, machine learning, etc.)
+* abbreviations and acronyms (llm, rag, ci/cd, etc.)
+* ai tools (cursor, github copilot, etc.)
 
 2. REMOVE:
 
@@ -72,12 +81,11 @@ IMPORTANT RULES:
 3. Extract abbreviations and their variants (e.g., LLM, RAG, CI/CD, REST API).
 4. Preserve the original wording exactly as it appears in the text.
 5. Do NOT normalize, translate, or explain — only extract.
-6. Avoid duplicates (case-insensitive).
-7. Keep meaningful phrases intact (do NOT split multi-word terms).
-8. If a phrase could be both general and technical — INCLUDE it.
-9. Include cloud services, protocols, standards, and paradigms.
-10. Output EVERYTHING relevant — better to slightly over-extract than miss something.
-11. Check if any known technical abbreviations are missing (REST, API, HTTP, SQL, etc).
+6. Keep meaningful phrases intact (do NOT split multi-word terms).
+7. If a phrase could be both general and technical — INCLUDE it.
+8. Include cloud services, protocols, standards, and paradigms.
+9. Output EVERYTHING relevant — better to slightly over-extract than miss something.
+10. Check if any known technical abbreviations are missing (REST, API, HTTP, SQL, etc).
 If missing — add them.
 
 
@@ -116,18 +124,25 @@ GOALS:
 RULES:
 
 1. For each input skill:
-   - Identify all known variants, including:
+   - Identify all known variants, including (include all versions):
      - different spellings (e.g react, react.js, reactjs, nestjs, nest.js)
      - abbreviations (js → javascript)
      - extended forms (rest → rest api)
      - shortened forms (javascript → js)
-   - Include both short and full versions
+    
+     examples:
+      - "back-end" → "back-end", "backend"
+      - "cursor ai" → "cursor ai", "cursor"
+      - "ms copilot" → "ms copilot", "copilot"
+      - "nestjs" → "nest.js", "nestjs"
+      - "nest.js" → "nest.js", "nestjs"
 
 2. Multi-word optimization:
    - If skill is multi-word → also include its core term
      Example:
      - "rest api" → "rest", "rest api"
      - "machine learning" → "machine learning", "ml"
+     - "full stack" → "full stack", "full-stack"
 
 3. Abbreviations:
    - Always include both:
@@ -170,4 +185,50 @@ OUTPUT RULES:
   DO NOT wrap in json or
   DO NOT add any text before or after
   Output must start with [ and end with ]
+"""
+
+
+EXTRACT_CV_FIELDS_RULES = """
+
+{
+  "summary": string,
+  "years_experience": number
+}
+
+
+SUMMARY FIELD RULES (REQUIRED):
+- 4-6 sentences
+- Written in third person or neutral tone (no "I")
+- Must include:
+  - Key roles and seniority_score (e.g. Senior Backend Engineer, CTO)
+  - Core tech stack
+  - Main achievements or impact (metrics if available)
+- Avoid generic phrases like "hardworking" or "team player"
+- Be concise and factual
+- Avoid filler words, marketing language, and repetition
+- sentense should be short and concise
+
+YEARS_EXPERIENCE FIELD RULES (REQUIRED):
+- Total professional experience in years (float, e.g. 5.5)
+- Calculate based on work history dates
+- Handle overlapping roles correctly (do not double count)
+- If unclear, estimate conservatively
+- Use 0 ONLY if no information is available
+
+Output rules:
+- Return ONLY valid JSON
+- No explanations, no extra text
+- All fields are required
+"""
+
+
+EXTRACT_DATA_CV_PROMPT = """
+You extract structured fields from a CV or resume.
+
+Return JSON with exactly these fields:
+{FIELDS}
+
+Rules:
+- SUMMARY must be non-empty whenever the document contains any employment or project history; synthesize from the text.
+- years_expereance: infer from dates and stated experience; if ranges conflict, choose a adviceable single number.
 """

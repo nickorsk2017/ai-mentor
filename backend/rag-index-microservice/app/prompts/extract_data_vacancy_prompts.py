@@ -1,3 +1,66 @@
+EXTRACT_VACANCY_PROMPT = """
+You are a skill extraction engine for job vacancies.
+
+Task:
+Extract ONLY relevant skills from the vacancy text.
+
+INPUT:
+vacancy_text: string
+
+WHAT TO EXTRACT:
+
+* Programming languages
+* Frameworks and libraries
+* Tools and platforms
+* Databases
+* Cloud providers
+* DevOps tools
+* AI/ML tools
+* APIs and protocols
+* Methods and methodologies
+* Architecture patterns
+* Technical requirements
+
+INCLUDE:
+
+* Explicitly mentioned technologies
+* Implicit technical skills
+
+IGNORE:
+
+* Responsibilities (e.g. "develop", "collaborate")
+* Soft skills (e.g. "team player", "communication")
+* Job titles and roles
+* Company names
+* Benefits and perks
+* Location, salary, conditions
+
+RULES:
+
+* Keep only concrete, meaningful skills
+
+* Normalize to short canonical forms when possible
+  (e.g. "node.js", "react", "postgresql", "aws")
+
+* Split combined skills:
+  "React/Redux" → ["react", "redux"]
+  "Node + Express" → ["node.js", "express"]
+
+* Deduplicate results
+
+* Output lowercase
+
+OUTPUT:
+Return JSON array of strings:
+["skill1", "skill2", ...]
+
+OUTPUT RULES:
+  Return ONLY a raw JSON array
+  DO NOT wrap in json or
+  DO NOT add any text before or after
+  Output must start with [ and end with ]
+"""
+
 EXTRACT_VACANCY_FIELDS = """
 - title (string) // IMPORTANT: if not present, set value to empty string
 - seniority_score (string) // ONLY THIS VALUES: junior/mid/senior/lead
@@ -40,49 +103,4 @@ SUMMARY SHOULD BE 8-15 SENTENCES.
 - COMPANY_WEBSITE SHOULD BE IN FORMAT "https://www.company.com" OR "https://company.com
 - BENEFITS SHOULD BE ARRAY OF STRINGS.
 - COMPANY_TYPE SHOULD BE IN FORMAT "startup" OR "enterprise" OR "government" OR "non-profit" OR "outsourcing" OR "other".
-"""
-
-EXTRACT_CV_FIELDS_RULES = """
-
-{
-  "summary": string,
-  "years_experience": number
-}
-
-
-SUMMARY FIELD RULES (REQUIRED):
-- 4-6 sentences
-- Written in third person or neutral tone (no "I")
-- Must include:
-  - Key roles and seniority_score (e.g. Senior Backend Engineer, CTO)
-  - Core tech stack
-  - Main achievements or impact (metrics if available)
-- Avoid generic phrases like "hardworking" or "team player"
-- Be concise and factual
-- Avoid filler words, marketing language, and repetition
-- sentense should be short and concise
-
-YEARS_EXPERIENCE FIELD RULES (REQUIRED):
-- Total professional experience in years (float, e.g. 5.5)
-- Calculate based on work history dates
-- Handle overlapping roles correctly (do not double count)
-- If unclear, estimate conservatively
-- Use 0 ONLY if no information is available
-
-Output rules:
-- Return ONLY valid JSON
-- No explanations, no extra text
-- All fields are required
-"""
-
-
-EXTRACT_DATA_CV_PROMPT = """
-You extract structured fields from a CV or resume.
-
-Return JSON with exactly these fields:
-{FIELDS}
-
-Rules:
-- SUMMARY must be non-empty whenever the document contains any employment or project history; synthesize from the text.
-- years_expereance: infer from dates and stated experience; if ranges conflict, choose a adviceable single number.
 """

@@ -60,14 +60,10 @@ def _sanitize_metadata(md: dict[str, Any]) -> dict[str, str | int | float | bool
 
 async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse:
     try:
-        extracted_vacancy_data = await extract_vacancy_data_for_index(
-            req.title,
-            req.company,
-            req.description,
-        )
+        extracted_vacancy_data = await extract_vacancy_data_for_index(req.description)
         summary = extracted_vacancy_data.summary
         extracted_vacancy_data = extracted_vacancy_data.model_dump(mode="json")
-    
+
         embedding = await asyncio.to_thread(_build_vacancy_embedding_data, summary)
         stages = [stage.model_dump(mode="json") for stage in req.stages]
         stages = json.dumps(stages)
@@ -78,9 +74,9 @@ async def add_vacancy_to_index(req: VacancyIndexPayload) -> VacancyIndexResponse
             "vacancy_id": req.vacancy_id,
             "company": (req.company or "").strip(),
             "summary": summary,
-            **extracted_vacancy_data,
             "title": req.title,
             "stages": stages,
+             **extracted_vacancy_data,
         }
         metadata = _sanitize_metadata(metadata)
 

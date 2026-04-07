@@ -98,7 +98,7 @@ def _get_ranking_data_llm(cv_text: str, cv_skills: list[str], vacancies_from_ind
 
         return RankingResponse.model_validate(data)
     except Exception as e:
-        logger.error("VACANCY INDEX VALIDATION ERROR: ", e)
+        logger.error("ERROR: Ranking failed: ", e)
         raise HTTPException(
             status_code=502,
             detail=f"Upstream error while indexing: {type(e).__name__}: {e}",

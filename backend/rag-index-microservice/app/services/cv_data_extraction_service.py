@@ -6,9 +6,9 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langchain_openai import ChatOpenAI
 
 from app.config import settings
-from app.prompts.index_to_vector_db import EXTRACT_CV_FIELDS_RULES, EXTRACT_DATA_CV_PROMPT
+from app.prompts.extract_data_cv_prompts import EXTRACT_CV_FIELDS_RULES, EXTRACT_DATA_CV_PROMPT
 from app.schemas.cv_extraction import CvExtractionRecord
-from app.services.skills_data_extraction_service import extract_skills_from_text
+from app.services.skills_data_extraction_service import extract_skills_from_cv
 from app.utils import strip_html_to_text
 
 
@@ -51,10 +51,8 @@ async def extract_cv_data_for_index(cv_html: str) -> CvExtractionRecord:
         llm = _get_llm_client()
         text = strip_html_to_text(cv_html)
 
-        skills = await extract_skills_from_text(llm, text)
+        skills = await extract_skills_from_cv(llm, text)
         other = _invoke_summary_years(llm, text)
-
-        print(skills)
 
         return CvExtractionRecord(
             skills=skills,
@@ -62,9 +60,4 @@ async def extract_cv_data_for_index(cv_html: str) -> CvExtractionRecord:
             years_expereance=other.years_expereance,
         )
     except Exception as e:
-        print(f"Error extracting CV data: {e}")
-        return CvExtractionRecord(
-            skills=[],
-            summary="",
-            years_expereance=0,
-        )
+        raise e
