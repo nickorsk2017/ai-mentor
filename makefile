@@ -165,7 +165,7 @@ install-frontend:
 	sudo corepack prepare pnpm@latest --activate
 	cd $(FRONTEND_DIR) && pnpm install
 	cd $(FRONTEND_DIR) && pnpm run build
-	sudo pnpm install -g pm2
+	sudo npm install -g pm2
 	pm2 startup
 
 update-frontend:
