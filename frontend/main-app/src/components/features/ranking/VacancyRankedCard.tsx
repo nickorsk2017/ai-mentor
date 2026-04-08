@@ -88,7 +88,7 @@ export function VacancyRankedCard({
         <p className="mt-1 text-base text-zinc-700 whitespace-pre-line">{(isActive ? summary : summary_truncated) || "No summary returned by the model."}</p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
+      {isActive && <div className="grid gap-3 md:grid-cols-3">
         <InterviewProgressPanel
           stages={stages}
         />
@@ -105,7 +105,7 @@ export function VacancyRankedCard({
             {vacancy.advice || "Keep your CV impact-focused and aligned with vacancy requirements."}
           </p>
         </div>
-      </div>
+      </div>}
 
       {skills_jsx}
     </article>

@@ -21,11 +21,11 @@ export function setValueToLocalStorage(key: string, value: string) {
     window.localStorage.setItem(key, value);
 }
 
-export function setUpdateTimeCV() {
+export function setUpdatedTimeCV() {
     setValueToLocalStorage(UPDATED_CV_TIME_KEY, Date.now().toString());
 }
 
-export function getUpdateTimeCV(): number | null {
+export function getUpdatedTimeCV(): number | null {
     return Number(getValueFromLocalStorage(UPDATED_CV_TIME_KEY));
 }
 
@@ -33,7 +33,7 @@ export function setUpdateTimeVacancies() {
     setValueToLocalStorage(UPDATED_VACANCIES_TIME_KEY, Date.now().toString());
 }
 
-export function getUpdateTimeVacancies(): number | null {
+export function getUpdatedTimeVacancies(): number | null {
     return Number(getValueFromLocalStorage(UPDATED_VACANCIES_TIME_KEY));
 }
 

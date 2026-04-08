@@ -1,5 +1,5 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8001" ;
-import { getOrCreateUserId, setUpdateTimeCV } from "./mainService";
+import { getOrCreateUserId, setUpdatedTimeCV } from "./mainService";
 
 
 export type CVResponse = {
@@ -11,7 +11,7 @@ export type CVResponse = {
 
 export async function saveCV(cvText: string): Promise<CVResponse> {
   const userId = getOrCreateUserId();
-  setUpdateTimeCV();
+  setUpdatedTimeCV();
   
   const res = await fetch(`${API_URL}/cvs`, {
     method: "PUT",

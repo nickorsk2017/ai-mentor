@@ -2,14 +2,14 @@
 
 import { create } from "zustand";
 import { getRenkingVacancies } from "@/services/rankingService";
-import { getUpdateTimeVacancies } from "@/services/mainService";
+import { getUpdatedTimeCV, getUpdatedTimeVacancies } from "@/services/mainService";
 
 type VacancyMatchedState = {
   vacancies: Entity.RankedVacancy[];
   loadingVacancies: boolean;
   vacanciesError: string | null;
   activeVacancyId: string | null;
-  timerDelayCvIndexing: NodeJS.Timeout | null;
+  timerForIndexing: NodeJS.Timeout | null;
 };
 
 type VacancyMatchedActions = {
@@ -18,6 +18,8 @@ type VacancyMatchedActions = {
   clearStore: () => void;
 };
 
+const DELAY_TIME_INDEXING = 50000;
+
 export type VacancyMatchedStore = VacancyMatchedState & VacancyMatchedActions;
 
 export const useVacancyRankingStore = create<VacancyMatchedStore>((set, get) => ({
@@ -25,38 +27,40 @@ export const useVacancyRankingStore = create<VacancyMatchedStore>((set, get) => 
   loadingVacancies: true,
   vacanciesError: null,
   activeVacancyId: null,
-  timerDelayCvIndexing: null,
+  timerForIndexing: null,
 
 
   clearStore: () => {
-    const { timerDelayCvIndexing } = get();
+    const { timerForIndexing } = get();
 
-    clearTimeout(timerDelayCvIndexing);
-    set({ vacancies: [], loadingVacancies: true, vacanciesError: null, timerDelayCvIndexing: null });
+    clearTimeout(timerForIndexing);
+    set({ vacancies: [], loadingVacancies: true, vacanciesError: null, timerForIndexing: null });
   },
 
   fetchMatchedVacancies: async () => {
     try {
-      const { timerDelayCvIndexing, fetchMatchedVacancies } = get();
-      const cvUpdatedAt = getUpdateTimeVacancies();
+      const { timerForIndexing, fetchMatchedVacancies } = get();
       const now = Date.now();
-      const delaytimeCvUpdated = 50000;
-      const delayDiff = cvUpdatedAt === null ? 0 : now - cvUpdatedAt;
+      const updatedTimeVacanciesDiff = DELAY_TIME_INDEXING - (now - getUpdatedTimeVacancies());
+      const updatedTimeCVDiff = DELAY_TIME_INDEXING - (now - getUpdatedTimeCV());
+      const delayDiff = updatedTimeCVDiff > updatedTimeVacanciesDiff ? updatedTimeCVDiff : updatedTimeVacanciesDiff;
 
-      clearTimeout(timerDelayCvIndexing);
+      clearTimeout(timerForIndexing);
 
-      if(delayDiff > 0 && delayDiff < delaytimeCvUpdated) {
+      console.log("delayDiff", delayDiff);
+
+      if(delayDiff > 0) {
 
           const timer= setTimeout(() => {
             fetchMatchedVacancies();
           }, delayDiff);
 
-          set({ timerDelayCvIndexing: timer });
+          set({ timerForIndexing: timer });
 
       } else {
-          set({ loadingVacancies: true, vacanciesError: null });
+          set({ loadingVacancies: true, vacanciesError: null, timerForIndexing: null });
           const data = await getRenkingVacancies();
-          set({ vacancies: data, loadingVacancies: false });
+          set({ vacancies: data, loadingVacancies: false});
         }  
       } catch (error) {
         const message =
